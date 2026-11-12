@@ -598,8 +598,8 @@ function drawMeterGrid(layerMap, canvas) {
 }
 
 function drawLines(context, layerMap, xMin, xMax, yMin, yMax, step) {
-  context.strokeStyle = "rgba(217, 211, 197, 0.28)";
-  context.fillStyle = "rgba(244, 241, 232, 0.86)";
+  context.strokeStyle = "rgba(126, 232, 224, 0.24)";
+  context.fillStyle = "rgba(214, 244, 240, 0.9)";
   context.lineWidth = 1;
   let guard = 0;
   for (let x = Math.ceil(xMin / step) * step; x <= xMax + step * 0.001; x += step) {
@@ -616,8 +616,8 @@ function drawLines(context, layerMap, xMin, xMax, yMin, yMax, step) {
 }
 
 function drawAxis(context, layerMap, xMin, xMax, yMin, yMax) {
-  context.strokeStyle = "rgba(255, 213, 106, 0.9)";
-  context.fillStyle = "#ffd56a";
+  context.strokeStyle = "rgba(255, 204, 102, 0.92)";
+  context.fillStyle = "#ffcc66";
   context.lineWidth = 1.5;
   if (xMin <= 0 && xMax >= 0) strokeVertical(context, layerMap, 0, yMin, yMax, "0");
   if (yMin <= 0 && yMax >= 0) strokeHorizontal(context, layerMap, 0, xMin, xMax, "0");
