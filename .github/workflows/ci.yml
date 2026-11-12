@@ -15,9 +15,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate locations
+      - name: Validate site data
         run: |
           node scripts/validate-locations.mjs
           node scripts/validate-hints.mjs
+          node scripts/validate-bot-skills.mjs
           node scripts/validate-terrain.mjs
-          node --test scripts/place.test.mjs scripts/terrain.test.mjs
+          node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs

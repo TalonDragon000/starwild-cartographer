@@ -710,7 +710,8 @@ th {
 tbody tr:nth-child(even) { background: rgba(16, 40, 52, 0.55); }
 
 td a,
-.survey-card a {
+.survey-card a,
+.lede a {
   color: var(--gold);
   text-decoration: underline;
   text-underline-offset: 0.15em;
