@@ -17,6 +17,7 @@
   --topo-grid-minor: #3f3c34;
   --topo-marker-plate: #10201c;
   --topo-marker-ring: #f4efe2;
+  --topo-fog-veil: rgba(18, 28, 22, 0.42);
   color-scheme: dark;
 }
 
@@ -389,7 +390,7 @@ html[data-view="topo"] #map,
   z-index: 500;
   top: 4.7rem;
   left: 0.55rem;
-  width: min(13.5rem, calc(100% - 6.5rem));
+  width: min(17.5rem, calc(100% - 5.2rem));
   max-height: calc(100% - 6.4rem);
   overflow: auto;
   padding: 0.45rem 0.55rem 0.4rem;
@@ -419,17 +420,33 @@ html[data-view="topo"] #map,
 
 .sheet-facts {
   display: grid;
-  grid-template-columns: 5.4rem minmax(0, 1fr);
-  gap: 0.12rem 0.4rem;
-  margin: 0 0 0.45rem;
-  font-size: 0.78rem;
+  grid-template-columns: 5.6rem minmax(0, 1fr);
+  gap: 0.15rem 0.45rem;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .sheet-facts div { display: contents; }
 
 .sheet-facts dt { font-weight: 700; }
 
-.sheet-facts dd { margin: 0; }
+.sheet-facts dd {
+  margin: 0;
+}
+
+#sheet-explored { white-space: pre-line; }
+
+.sheet-demo {
+  margin: 0 0 0.4rem;
+  padding: 0.28rem 0.4rem;
+  background: #5c4314;
+  color: #fff8e8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+}
 
 .surface-panel {
   margin-top: 0.75rem;
@@ -478,6 +495,16 @@ html[data-view="topo"] #map,
   height: 0.95rem;
   flex: none;
   border: 2px solid currentColor;
+}
+
+.surface-swatch.is-fog {
+  border-color: var(--topo-ink);
+  background-color: #8d8c70;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(26, 23, 18, 0.55) 0 1px,
+    transparent 1px 5px
+  );
 }
 
 .map-frame.view-topo .compass-rose {
@@ -555,6 +582,7 @@ html[data-view="topo"] #map,
 }
 
 .contour-layer,
+.fog-layer,
 .meter-grid {
   position: absolute;
   left: 0;

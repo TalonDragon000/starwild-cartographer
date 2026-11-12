@@ -21,4 +21,5 @@ jobs:
           node scripts/validate-hints.mjs
           node scripts/validate-bot-skills.mjs
           node scripts/validate-terrain.mjs
-          node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs
+          node scripts/validate-explored.mjs
+          node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs

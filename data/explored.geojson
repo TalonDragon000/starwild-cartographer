@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "description": "Ground V3KTR has traveled. The topographic view buffers each feature by properties.radius_m, or by default_radius_m when that is null. Fog covers everything outside those buffers. Coordinates are display meters, [east, north]. Example features stay hidden unless the page is opened with ?demo=1. Do not invent a path. Schema: id, example, world, radius_m, date, source, notes. See the README.",
+  "default_radius_m": 40,
+  "updated": null,
+  "features": [
+    {
+      "type": "Feature",
+      "id": "eden-2026-11-12-dragons-lair-base",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0, 0]
+      },
+      "properties": {
+        "id": "eden-2026-11-12-dragons-lair-base",
+        "example": false,
+        "world": "Eden",
+        "radius_m": null,
+        "date": "2026-11-12",
+        "source": "logs/2026-11-12.md",
+        "notes": "Dragons Lair Base, the Eden origin. The sheet clears the default radius around this visited point. The radius is not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "example-demo-maren-track",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [90, 20],
+          [160, 90],
+          [190, 130],
+          [240, 190]
+        ]
+      },
+      "properties": {
+        "id": "example-demo-maren-track",
+        "example": true,
+        "world": "Maren",
+        "radius_m": 28,
+        "date": null,
+        "source": null,
+        "notes": "EXAMPLE. Hidden demo track for ?demo=1. Not a path V3KTR walked. It crosses the example grass polygon so the sheet can be checked."
+      }
+    }
+  ]
+}

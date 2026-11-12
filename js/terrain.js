@@ -1,9 +1,9 @@
 /** Topographic view helpers.
 
-Contours are decorative. Starwild has no elevation data. The height field is
-seeded value noise in display meters, so the same view draws the same lines
-on every load. Surveyed ground comes from data/terrain.geojson. Colors come
-from data/surface-palette.json.
+Contours are seeded lines, not measured heights. The sheet draws them only
+where a surveyed polygon sits inside explored ground. Surveyed ground comes
+from data/terrain.geojson. Colors come from data/surface-palette.json.
+Explored ground comes from data/explored.geojson.
 
 The storage key is duplicated by a short inline script in index.html so the
 paper base can paint before this module loads.
@@ -281,4 +281,12 @@ export function terrainPresentation(feature, palette) {
 
 export function isTerrainKind(kind) {
   return TERRAIN_KINDS.has(kind);
+}
+
+export function areaRings(feature) {
+  const geometry = feature?.geometry;
+  if (!geometry || !Array.isArray(geometry.coordinates)) return [];
+  if (geometry.type === "Polygon") return [geometry.coordinates];
+  if (geometry.type === "MultiPolygon") return geometry.coordinates;
+  return [];
 }

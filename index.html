@@ -96,10 +96,12 @@
           <aside id="sheet-card" class="sheet-card" hidden aria-label="Topographic sheet">
             <p class="sheet-kicker">Field sheet</p>
             <p id="sheet-world" class="sheet-world">—</p>
+            <p id="sheet-demo" class="sheet-demo" hidden>DEMO. Not a traveled path.</p>
             <dl class="sheet-facts">
               <div><dt>Grid</dt><dd id="sheet-grid">—</dd></div>
               <div><dt>North</dt><dd id="sheet-north">Provisional</dd></div>
-              <div><dt>Contours</dt><dd>Decorative</dd></div>
+              <div><dt>Explored</dt><dd id="sheet-explored">—</dd></div>
+              <div><dt>Fog</dt><dd>Unexplored</dd></div>
               <div><dt>Datum</dt><dd>Display meters</dd></div>
             </dl>
           </aside>
@@ -118,11 +120,11 @@
           <p id="cursor" class="hud cursor" aria-hidden="true"></p>
           <p id="grid-step" class="hud grid-step" aria-hidden="true"></p>
         </div>
-        <p id="topo-note" class="map-note" hidden>Contours are decorative until terrain is surveyed.</p>
+        <p id="topo-note" class="map-note" hidden>Fog = unexplored. Surveyed color and contours show only on ground that has been traveled.</p>
         <section id="surface-panel" class="surface-panel" hidden aria-labelledby="surface-legend-title">
           <h3 id="surface-legend-title">Surfaces</h3>
           <ul id="surface-legend" class="surface-legend"></ul>
-          <p class="surface-panel-note">Unsurveyed ground stays the paper color.</p>
+          <p class="surface-panel-note">Fog = unexplored. Paper is explored ground with no survey yet. Color and contours appear only inside both.</p>
         </section>
         <p id="view-status" class="visually-hidden" role="status"></p>
         <p id="map-empty" class="map-note" hidden></p>
