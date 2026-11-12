@@ -10,6 +10,8 @@ paper base can paint before this module loads.
 */
 
 export const VIEW_STORAGE_KEY = "starwild-cartographer.mapView";
+export const INFO_STORAGE_KEY = "starwild-cartographer.mapInfo";
+export const LEGEND_STORAGE_KEY = "starwild-cartographer.mapLegend";
 
 export const CONTOUR_SEED = 0x51a711ed;
 export const CONTOUR_FIRST = 0.28;
@@ -26,6 +28,10 @@ export function parseView(value) {
   if (text === "topo" || text === "topographic") return "topo";
   if (text === "simple") return "simple";
   return null;
+}
+
+export function parseInfoOpen(value) {
+  return value === "open";
 }
 
 export function contourLevels() {

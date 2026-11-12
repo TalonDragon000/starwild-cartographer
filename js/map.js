@@ -14,12 +14,15 @@ import {
   revealShapes,
 } from "./explored.js";
 import {
+  INFO_STORAGE_KEY,
+  LEGEND_STORAGE_KEY,
   VIEW_STORAGE_KEY,
   areaRings,
   contourGeometry,
   elevation,
   fieldForView,
   militarySteps,
+  parseInfoOpen,
   parseView,
   scaleSpec,
   terrainPresentation,
@@ -55,6 +58,12 @@ const viewStatus = document.querySelector("#view-status");
 const compassLabel = document.querySelector("#compass-label");
 const sheetExplored = document.querySelector("#sheet-explored");
 const sheetDemo = document.querySelector("#sheet-demo");
+const infoToggle = document.querySelector("#map-info-toggle");
+const infoPanel = document.querySelector("#map-info-panel");
+const legendToggle = document.querySelector("#legend-toggle");
+const legendPanel = document.querySelector("#legend-panel");
+let infoOpen = false;
+let legendOpen = false;
 
 const markers = new Map();
 let schema = null;
@@ -107,8 +116,14 @@ if (map) {
   meterGrid().addTo(map);
   map.on("move zoom viewreset resize", drawScaleBar);
   map.on("zoomend moveend viewreset resize", updateRevealClip);
-  map.on("popupopen", () => sheetCard.classList.add("is-covered"));
-  map.on("popupclose", () => sheetCard.classList.remove("is-covered"));
+  map.on("popupopen", () => {
+    infoPanel.classList.add("is-covered");
+    legendPanel.classList.add("is-covered");
+  });
+  map.on("popupclose", () => {
+    infoPanel.classList.remove("is-covered");
+    legendPanel.classList.remove("is-covered");
+  });
 }
 
 form.addEventListener("submit", (event) => event.preventDefault());
@@ -124,6 +139,17 @@ for (const input of viewInputs) {
   });
 }
 applyInitialView();
+applyInitialInfo();
+infoToggle.addEventListener("click", () => {
+  const open = !infoOpen;
+  setMapInfoOpen(open, { focus: open ? "panel" : "toggle" });
+});
+legendToggle.addEventListener("click", () => {
+  const open = !legendOpen;
+  setLegendOpen(open, { focus: open ? "panel" : "toggle" });
+});
+document.addEventListener("keydown", onMapPanelKeydown, true);
+document.addEventListener("pointerdown", onMapPanelPointerDown);
 if (map) {
   map.on("mousemove", (event) => {
     cursor.textContent = formatEastNorth(event.latlng.lng, event.latlng.lat);
@@ -794,6 +820,105 @@ function applyInitialView() {
   }
 }
 
+function applyInitialInfo() {
+  infoOpen = readPanelOpen(INFO_STORAGE_KEY);
+  legendOpen = readPanelOpen(LEGEND_STORAGE_KEY);
+  syncInfoPanel({ persist: false });
+  syncLegendPanel({ persist: false });
+}
+
+function readPanelOpen(key) {
+  try {
+    return parseInfoOpen(localStorage.getItem(key));
+  } catch {
+    return false;
+  }
+}
+
+function writePanelOpen(key, open) {
+  try {
+    localStorage.setItem(key, open ? "open" : "closed");
+  } catch {
+    // The button still opens the panel when storage is unavailable.
+  }
+}
+
+function setMapInfoOpen(open, options = {}) {
+  infoOpen = open === true;
+  syncInfoPanel(options);
+}
+
+function setLegendOpen(open, options = {}) {
+  legendOpen = open === true;
+  syncLegendPanel(options);
+}
+
+function syncInfoPanel(options = {}) {
+  infoToggle.setAttribute("aria-expanded", infoOpen ? "true" : "false");
+  infoPanel.hidden = !infoOpen;
+  if (options.persist !== false) writePanelOpen(INFO_STORAGE_KEY, infoOpen);
+  if (options.focus === "panel" && infoOpen) infoPanel.focus();
+  if (options.focus === "toggle" && !infoOpen) infoToggle.focus();
+}
+
+function syncLegendPanel(options = {}) {
+  const topographic = mapView === "topo";
+  legendToggle.hidden = !topographic;
+  const show = topographic && legendOpen;
+  legendToggle.setAttribute("aria-expanded", show ? "true" : "false");
+  legendPanel.hidden = !show;
+  if (options.persist !== false) writePanelOpen(LEGEND_STORAGE_KEY, legendOpen);
+  if (options.focus === "panel" && show) legendPanel.focus();
+  if (options.focus === "toggle" && !show && topographic) legendToggle.focus();
+}
+
+function onMapPanelKeydown(event) {
+  if (event.key !== "Escape") return;
+  const active = document.activeElement;
+  if (!infoPanel.hidden && infoPanel.contains(active)) {
+    event.preventDefault();
+    event.stopPropagation();
+    setMapInfoOpen(false, { focus: "toggle" });
+    return;
+  }
+  if (!legendPanel.hidden && legendPanel.contains(active)) {
+    event.preventDefault();
+    event.stopPropagation();
+    setLegendOpen(false, { focus: "toggle" });
+    return;
+  }
+  if (infoPanel.hidden && legendPanel.hidden) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (!legendPanel.hidden) setLegendOpen(false);
+  if (!infoPanel.hidden) setMapInfoOpen(false);
+  infoToggle.focus();
+}
+
+function onMapPanelPointerDown(event) {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (
+    infoPanel.contains(target) ||
+    infoToggle.contains(target) ||
+    legendPanel.contains(target) ||
+    legendToggle.contains(target)
+  ) {
+    return;
+  }
+  const focusInInfo = infoPanel.contains(document.activeElement);
+  const focusInLegend = legendPanel.contains(document.activeElement);
+  const infoWasOpen = !infoPanel.hidden;
+  const legendWasOpen = !legendPanel.hidden;
+  if (!infoWasOpen && !legendWasOpen) return;
+  if (infoWasOpen) setMapInfoOpen(false);
+  if (legendWasOpen) setLegendOpen(false);
+  const willFocus = target.closest("button, a, input, select, textarea, [tabindex]");
+  if (willFocus) return;
+  if (focusInInfo) infoToggle.focus();
+  else if (focusInLegend) legendToggle.focus();
+}
+
 function setMapView(next, options = {}) {
   const view = parseView(next) ?? "simple";
   mapView = view;
@@ -807,6 +932,7 @@ function setMapView(next, options = {}) {
   scaleBar.hidden = !topographic;
   topoNote.hidden = !topographic;
   surfacePanel.hidden = !topographic;
+  syncLegendPanel({ persist: false });
   updateSheetFacts();
   if (options.announce) {
     viewStatus.textContent = topographic
@@ -1645,7 +1771,10 @@ function labelBlocked(x, y) {
     document.querySelector(".leaflet-control-zoom"),
     document.querySelector(".compass-rose"),
     scaleBar.hidden ? null : scaleBar,
-    sheetCard.hidden ? null : sheetCard,
+    infoPanel.hidden ? null : infoPanel,
+    legendPanel.hidden ? null : legendPanel,
+    infoToggle,
+    legendToggle.hidden ? null : legendToggle,
   ];
   for (const node of obstacles) {
     if (!node) continue;

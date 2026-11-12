@@ -326,6 +326,7 @@ fieldset {
   position: relative;
   height: min(72vh, 48rem);
   min-height: 24rem;
+  margin-top: 0.35rem;
   border: 1px solid var(--line);
   border-radius: 4px;
   box-shadow: var(--glow);
@@ -386,21 +387,137 @@ html[data-view="topo"] #map,
 }
 
 .sheet-card {
-  position: absolute;
-  z-index: 500;
-  top: 4.7rem;
-  left: 0.55rem;
-  width: min(17.5rem, calc(100% - 5.2rem));
-  max-height: calc(100% - 6.4rem);
-  overflow: auto;
-  padding: 0.45rem 0.55rem 0.4rem;
-  background: rgba(244, 239, 226, 0.96);
-  color: var(--topo-ink);
-  border: 1.5px solid var(--topo-ink);
+  position: static;
+  width: auto;
+  max-height: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  box-shadow: none;
   font-family: ui-monospace, "Cascadia Code", monospace;
 }
 
-.sheet-card.is-covered { visibility: hidden; }
+.map-corner {
+  position: absolute;
+  z-index: 520;
+  right: 0.45rem;
+  bottom: 1.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+  width: min(22rem, calc(100% - 8.5rem));
+  max-height: calc(100% - 5.5rem);
+  pointer-events: none;
+}
+
+.map-corner-buttons {
+  display: flex;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.map-corner-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--cyan);
+  border-radius: 50%;
+  background: #0c1a24;
+  color: var(--gold);
+  font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: var(--glow);
+  pointer-events: auto;
+}
+
+.map-corner-button[hidden] { display: none; }
+
+.map-corner-button svg { display: block; }
+
+.map-corner-button:hover { background: #12303a; }
+
+.map-corner-button[aria-expanded="true"] {
+  background: var(--gold);
+  color: #1a1712;
+  border-color: var(--gold);
+}
+
+.map-frame.view-topo .map-corner-button {
+  background: #f4efe2;
+  color: var(--topo-ink);
+  border-color: var(--topo-ink);
+  box-shadow: none;
+}
+
+.map-frame.view-topo .map-corner-button:hover { background: #e7e0cc; }
+
+.map-frame.view-topo .map-corner-button[aria-expanded="true"] {
+  background: var(--topo-ink);
+  color: #f4efe2;
+  border-color: var(--topo-ink);
+}
+
+.map-corner-panel {
+  width: 100%;
+  max-height: min(18rem, 46vh);
+  overflow: auto;
+  padding: 0.8rem 0.9rem 0.9rem;
+  background: rgba(12, 26, 36, 0.97);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: var(--glow);
+  pointer-events: auto;
+}
+
+.map-corner-panel:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.map-corner-panel.is-covered { visibility: hidden; }
+
+.map-info-note,
+.map-corner-panel .map-note,
+.map-corner-panel .surface-panel-note {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.map-corner-panel .map-note,
+.map-corner-panel .surface-panel-note { margin-top: 0.7rem; }
+
+.map-frame.view-topo .map-corner-panel {
+  background: rgba(244, 239, 226, 0.98);
+  color: var(--topo-ink);
+  border: 1.5px solid var(--topo-ink);
+  box-shadow: none;
+}
+
+.map-frame.view-topo .map-info-note,
+.map-frame.view-topo .map-corner-panel .map-note,
+.map-frame.view-topo .map-corner-panel .surface-panel-note,
+.map-frame.view-topo .map-corner-panel .surface-panel h3,
+.map-frame.view-topo .surface-legend {
+  color: var(--topo-ink);
+}
+
+.map-frame .leaflet-control-attribution {
+  margin-right: 7.2rem !important;
+}
 
 .sheet-kicker {
   margin: 0;
@@ -420,10 +537,10 @@ html[data-view="topo"] #map,
 
 .sheet-facts {
   display: grid;
-  grid-template-columns: 5.6rem minmax(0, 1fr);
+  grid-template-columns: 5.2rem minmax(0, 1fr);
   gap: 0.15rem 0.45rem;
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   line-height: 1.35;
 }
 
@@ -449,12 +566,11 @@ html[data-view="topo"] #map,
 }
 
 .surface-panel {
-  margin-top: 0.75rem;
-  padding: 0.75rem 0.9rem 0.85rem;
-  background: rgba(12, 26, 36, 0.94);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  box-shadow: var(--glow);
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .surface-panel h3 {
@@ -533,7 +649,7 @@ html[data-view="topo"] #map,
 
 .scale-bar {
   position: absolute;
-  z-index: 500;
+  z-index: 540;
   left: 50%;
   bottom: 0.45rem;
   transform: translateX(-50%);
@@ -797,10 +913,10 @@ code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 0.85rem
   .map-frame { height: 70vh; min-height: 22rem; }
   h1 { font-size: 2rem; }
   .view-switch { width: 100%; }
-  .sheet-card { width: min(15rem, calc(100% - 4.2rem)); }
+  .map-corner { width: min(22rem, calc(100% - 4.6rem)); }
   .scale-bar {
-    left: 0.45rem;
-    bottom: 3.6rem;
+    left: 0.4rem;
+    bottom: 0.4rem;
     transform: none;
   }
 }

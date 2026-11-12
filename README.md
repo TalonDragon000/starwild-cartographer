@@ -94,7 +94,7 @@ The Eden origin is `eden-2026-11-12-dragons-lair-base`, stored at x 0, y 0. The 
 **Topographic** is a flat military field sheet. It does not shade hills and it does not fake a third dimension.
 
 - The base is muted olive paper. Fog covers ground that has not been traveled. A revealed patch is the paper color until a survey gives it a surface.
-- Surveyed polygons in `data/terrain.geojson` are filled from `data/surface-palette.json`, and only inside explored ground. A legend under the map lists fog, paper, and every surface. The corner block on the sheet gives the grid, north, how much of the current view is explored, and the datum.
+- Surveyed polygons in `data/terrain.geojson` are filled from `data/surface-palette.json`, and only inside explored ground. Two round buttons at the lower right of the map open the details, and both start closed. **?** is More info: the field sheet, the north note, and the explored readout. The layers button is the surface key. Each choice is remembered on its own, in `localStorage` under `starwild-cartographer.mapInfo` and `starwild-cartographer.mapLegend`. The scale bar stays on the map.
 - Contour lines are seeded, not measured heights. They stay put between loads, and they are drawn only on surveyed polygons that sit inside explored ground. Every fifth line is a heavier index contour. A thin light edge keeps the brown line visible on dark ground. The sheet says: "Fog = unexplored."
 - The grid is dark gray. Spacing follows the zoom in the manner of 100 m squares with a heavier line every tenth square, so a 100 m grid has 1 km index lines. Numbers sit on the edges and are display meters.
 - A scale bar is labeled in display meters.
