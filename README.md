@@ -16,6 +16,8 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/resources.csv` | Machine-readable resource sightings. One row per sighting. The map does not read this file. |
 | `data/locations.geojson` | Map locations. One GeoJSON feature per discovered place. |
 | `data/location-schema.json` | Worlds, compass status, categories, icon shapes, and colors. |
+| `data/terrain.geojson` | Surveyed ground for the topographic view: surfaces, and later ridges, rivers, lakes, and outcrops. |
+| `data/surface-palette.json` | Fill colors for topographic surfaces. This is the only place those colors are set. |
 | `data/hints.json` | Gameplay tips. One object per tip. The hints page reads this file. |
 | `index.html`, `hints.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. |
 | `worlds/` | One Markdown file per known world, plus a template for a world that does not have a file yet. |
@@ -23,7 +25,9 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `outpost/eden-outpost.md` | Supply crates at the owner's public outpost on Eden. |
 | `scripts/validate-locations.mjs` | Checks `data/locations.geojson` against the schema. |
 | `scripts/validate-hints.mjs` | Checks `data/hints.json` against the schema. |
+| `scripts/validate-terrain.mjs` | Checks `data/terrain.geojson` and `data/surface-palette.json`. |
 | `scripts/place.test.mjs` | Checks the bearing-to-position math. |
+| `scripts/terrain.test.mjs` | Checks the topographic grid, contours, and surface colors. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
 Named worlds:
@@ -45,7 +49,9 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The pages load their data with `fetch`, so opening an HTML file directly will not show locations or hints. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, and an approximate fix. Helpful Hints is linked from the site navigation.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations or hints. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. Helpful Hints is linked from the site navigation.
+
+The map has two views. **Simple** is the default dark survey plot. **Topographic** is the flat field sheet described below. The choice is stored in this browser. A link can force it with `?view=simple` or `?view=topo`.
 
 ## Compass
 
@@ -74,6 +80,53 @@ Nav markers and visible planets stay on the place that saw them. A nav marker is
 
 The Eden origin is `eden-2026-11-12-dragons-lair-base`, stored at x 0, y 0. The owner may later designate the Eden Outpost instead. To change it, set `origin` to false on the current origin and true on the new place, and store that place at x 0, y 0. Only one non-example origin is allowed on a world.
 
+## Map views
+
+**Simple** stays the default. It is the dark plot: category markers, the cyan meter grid, and the display-north arrow. Markers, popups, filters, the category list, search, and the location table behave the same in both views. The page chrome stays Atkinson Hyperlegible for prose and Orbitron, cyan, and gold for the controls.
+
+**Topographic** is a flat military field sheet. It does not shade hills and it does not fake a third dimension.
+
+- The base is muted olive paper. Ground that has not been surveyed stays that paper color.
+- Surveyed polygons in `data/terrain.geojson` are filled from `data/surface-palette.json`. A legend under the map lists every surface, including paper for ground that is not surveyed yet. The corner block on the sheet gives the grid, north, and datum.
+- Contour lines are decorative. Starwild has no elevation data. The lines come from seeded noise, so they stay put between loads. They are not heights. Every fifth line is a heavier index contour. A thin light edge keeps the brown line visible on dark ground. The sheet says: "Contours are decorative until terrain is surveyed."
+- The grid is dark gray. Spacing follows the zoom in the manner of 100 m squares with a heavier line every tenth square, so a 100 m grid has 1 km index lines. Numbers sit on the edges and are display meters.
+- A scale bar is labeled in display meters.
+- The north arrow reads **N (provisional)** until `north_derived` is true for that world.
+
+The browser remembers the view in `localStorage` under `starwild-cartographer.mapView`. `?view=simple` and `?view=topo` override that saved choice.
+
+## Terrain
+
+`data/terrain.geojson` is a GeoJSON `FeatureCollection`. The topographic view draws it. The simple view ignores it. Do not invent a surface, ridge, river, lake, or outcrop for a real place. Add a feature only when that ground was surveyed.
+
+The file ships with one example polygon on Maren, `example-maren-grass`. It is hidden until **Show examples** is on. The name and notes include `EXAMPLE`. It is not a surveyed place.
+
+Change a hex value in `data/surface-palette.json` to match an in-game shade. That file is the only color list for these fills. To add a ground type, add an object to `surfaces`, then set `properties.surface` to its `id`. These ids stay in the palette so the legend can name them: `grass`, `forest`, `dirt`, `sand`, `snow`, `rock`, and `water`. A feature whose surface is not in the list is rejected by the checker. The page still has a fallback swatch, labeled "Other surface", for a palette that is newer than the script.
+
+Contours are not stored in the terrain file.
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Same string as the feature `id`. Non-empty, no whitespace, unique in the file. |
+| `example` | `true` for a sample hidden until **Show examples** is on. `false` for surveyed ground. An example id starts with `example-`, and the name or notes include `EXAMPLE`. |
+| `world` | A world name from `data/location-schema.json`. The feature is drawn only while that world is selected. |
+| `kind` | `surface`, `lake`, `river`, `ridge`, or `outcrop`. |
+| `surface` | A palette id, or `null`. Required for `kind: "surface"`. A lake with `null` is drawn as water. An outcrop with `null` is drawn as rock. Rivers and ridges keep this `null`. |
+| `name` | Short name, or `null`. |
+| `notes` | What was surveyed, or `null`. |
+
+| `kind` | Geometry |
+| --- | --- |
+| `surface`, `lake` | `Polygon` or `MultiPolygon`. |
+| `river`, `ridge` | `LineString` or `MultiLineString`. |
+| `outcrop` | `Point`, `MultiPoint`, `Polygon`, or `MultiPolygon`. |
+
+Coordinates are `[east, north]` in display meters, the same plane as locations. A polygon ring is closed: the first position is repeated at the end. Lines and points are drawn above the surface fills and under the grid. Contours are drawn over the fills.
+
+```sh
+node scripts/validate-terrain.mjs
+```
+
 ## How to add a location
 
 The map reads `data/locations.geojson` only. Append one feature to the `features` array after a session when a place should be remembered. Keep the file a single `FeatureCollection`. Do not invent a bearing or a distance. An unknown value is JSON `null`, not `""`, `"unknown"`, or `"n/a"`.
@@ -85,7 +138,8 @@ Then run:
 ```sh
 node scripts/validate-locations.mjs
 node scripts/validate-hints.mjs
-node --test scripts/place.test.mjs
+node scripts/validate-terrain.mjs
+node --test scripts/place.test.mjs scripts/terrain.test.mjs
 ```
 
 The same checks run in GitHub Actions.
@@ -220,7 +274,7 @@ If the push to `main` happened before that source was selected, open the **Actio
 5. For each gameplay tip that was actually learned, append one object to `data/hints.json`.
 6. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
 7. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-8. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, and `node --test scripts/place.test.mjs`.
+8. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-terrain.mjs`, and `node --test scripts/place.test.mjs scripts/terrain.test.mjs`.
 9. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.
