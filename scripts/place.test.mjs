@@ -118,11 +118,22 @@ test("distance labels keep survey precision", () => {
   assert.equal(formatEastNorth(-30, 75), "30 m west, 75 m north");
 });
 
-test("logged Eden spawn and Maren examples place as documented", () => {
+test("logged Eden anchor and Maren examples place as documented", () => {
   const collection = JSON.parse(readFileSync(join(root, "data/locations.geojson"), "utf8"));
   const byId = index(collection.features);
-  const spawn = displayPosition(byId.get("eden-2026-11-12-v3ktr-first-spawn"), byId);
-  assert.deepEqual(spawn, { x: 0, y: 0, method: "origin" });
+  const base = displayPosition(byId.get("eden-2026-11-12-dragons-lair-base"), byId);
+  assert.deepEqual(base, { x: 0, y: 0, method: "origin" });
+
+  const spawn = byId.get("eden-2026-11-12-v3ktr-first-spawn");
+  assert.equal(spawn.properties.approximate, true);
+  assert.equal(spawn.properties.bearing_deg, null);
+  assert.equal(spawn.properties.distance_m, 276);
+  assert.equal(displayPosition(spawn, byId), null);
+
+  const starfall = byId.get("hush-2026-11-12-starfall");
+  assert.equal(starfall.properties.world, "Hush");
+  assert.equal(starfall.properties.bearing_deg, null);
+  assert.equal(displayPosition(starfall, byId), null);
 
   const camp = byId.get("example-maren-camp");
   const vein = displayPosition(byId.get("example-maren-vein"), byId);

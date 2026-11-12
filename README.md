@@ -53,7 +53,7 @@ North will be derived from the motion of the sun or of Varda as seen on that wor
 
 Bearings are degrees clockwise from that world's north. 0 is north, 90 is east, 180 is south, and 270 is west.
 
-Distances are meters. A nav marker that reads in kilometers is stored in meters, and the original wording is kept in `distance_raw`. `164.4 km` is `164400` meters.
+Distances are meters. A nav marker that reads in kilometers is stored in meters, and the original wording is kept in `distance_raw`. `1.5 km` is `1500` meters. An approximate reading keeps the tilde in `distance_raw`, such as `~164 km`.
 
 The display plane is meters from the world's origin anchor. East is +x. North is +y. z is recorded and is not plotted.
 
@@ -70,7 +70,7 @@ y = anchor_y + distance_m * cos(bearing_deg)
 
 Nav markers and visible planets stay on the place that saw them. A nav marker is not a separate point until it has its own feature. A distance without a bearing is not plotted.
 
-The Eden origin, until the Eden Outpost is logged, is `eden-2026-11-12-v3ktr-first-spawn`. It is stored at x 0, y 0. The planet is not confirmed, so `world_unconfirmed` is `true`.
+The Eden origin is `eden-2026-11-12-dragons-lair-base`, stored at x 0, y 0. The owner may later designate the Eden Outpost instead. To change it, set `origin` to false on the current origin and true on the new place, and store that place at x 0, y 0. Only one non-example origin is allowed on a world.
 
 ## How to add a location
 
@@ -100,7 +100,7 @@ Each feature is a GeoJSON `Feature`. `id` on the feature and `properties.id` are
 | `world` | `Eden`, `Hush`, `Vesper`, `Maren`, `Talus`, or `Thorne`. |
 | `world_unconfirmed` | `true` when the place is filed under that world but the planet was not confirmed. |
 | `region` | Region or landmark name, or `null`. |
-| `origin` | `true` for the one display origin on that world. Stored at x 0, y 0. An example cannot be an origin. Eden's origin stays the V3KTR spawn until the outpost is logged. |
+| `origin` | `true` for the one display origin on that world. Stored at x 0, y 0. An example cannot be an origin. Eden's origin is Dragons Lair Base until the owner designates the Eden Outpost. |
 | `anchor` | `true` when other places may name this feature in `anchor_id`. An origin is an anchor. |
 | `anchor_id` | Id of the reference place on the same world, or `null` for an origin or a point that is not relative to anything. A real place cannot use an example as its anchor. |
 | `bearing_deg` | Degrees clockwise from derived north, from 0 up to but not including 360, or `null`. |
@@ -153,7 +153,7 @@ This is the shape of a new place that is not the origin. It is not itself a feat
     "region": "Landmark name",
     "origin": false,
     "anchor": false,
-    "anchor_id": "eden-2026-11-12-v3ktr-first-spawn",
+    "anchor_id": "eden-2026-11-12-dragons-lair-base",
     "bearing_deg": null,
     "distance_m": null,
     "x": null,
@@ -201,8 +201,8 @@ The bot appends. The owner can edit any file the bot touched.
 
 | Name | What is known |
 | --- | --- |
-| Eden | Home world. Forests, iron, landing grounds. Public outpost. V3KTR first spawn, logged 2026-11-12, is the display origin until the outpost is logged. The planet of that spawn is not confirmed. |
-| Hush | Eden's airless moon. Silica. |
+| Eden | Home world. Forests, iron, landing grounds. Public outpost. Dragons Lair Base, logged 2026-11-12, is the display origin until the owner designates the Eden Outpost. |
+| Hush | Eden's airless moon. Silica. Starfall was seen on 2026-11-12 at about 164 km. Bearing unknown. |
 | Vesper | Named. No survey yet. |
 | Maren | Named. No survey yet. |
 | Talus | Named. No survey yet. |
