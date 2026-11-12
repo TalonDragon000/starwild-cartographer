@@ -1,0 +1,51 @@
+{
+  "categories": [
+    {
+      "id": "social-crew",
+      "name": "Social & Crew"
+    },
+    {
+      "id": "movement-building",
+      "name": "Movement & Building"
+    },
+    {
+      "id": "performance-troubleshooting",
+      "name": "Performance & Troubleshooting"
+    }
+  ],
+  "skills": [
+    {
+      "id": "starwild-crew-and-chat",
+      "name": "Starwild crew and chat",
+      "description": "Use when a Starwild bot needs to message another player, join or invite someone to a crew, or confirm a crew exists. Covers Nearby vs Crew chat and both invite directions.",
+      "category": "social-crew",
+      "tags": ["crew", "chat", "nearby", "invite"],
+      "status": "verified",
+      "date_added": "2026-11-12",
+      "last_updated": "2026-11-12",
+      "source_path": "bot-skills/starwild-crew-and-chat/SKILL.md"
+    },
+    {
+      "id": "starwild-climbing-and-bed-spawn",
+      "name": "Starwild climbing and bed spawn",
+      "description": "Use when a Starwild bot needs to climb a ladder or reach an upper floor, or set a bed as its spawn point.",
+      "category": "movement-building",
+      "tags": ["ladder", "climbing", "bed", "spawn"],
+      "status": "draft",
+      "date_added": "2026-11-12",
+      "last_updated": "2026-11-12",
+      "source_path": "bot-skills/starwild-climbing-and-bed-spawn/SKILL.md"
+    },
+    {
+      "id": "starwild-lag-and-browser-handling",
+      "name": "Starwild lag and browser handling",
+      "description": "Use when a bot plays Starwild in a browser and the game lags, freezes, misses clicks, or loses invites or messages.",
+      "category": "performance-troubleshooting",
+      "tags": ["lag", "browser", "refresh", "popup"],
+      "status": "verified",
+      "date_added": "2026-11-12",
+      "last_updated": "2026-11-12",
+      "source_path": "bot-skills/starwild-lag-and-browser-handling/SKILL.md"
+    }
+  ]
+}

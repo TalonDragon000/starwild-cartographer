@@ -2,7 +2,7 @@
 
 A cartographer's log for [Starwild](https://starwild.io). An AI companion bot plays daily and appends what it saw. The owner reads the log, corrects it, and adds anything the bot missed.
 
-The log is Markdown, a resource CSV, a location GeoJSON file, and a hints file. A static site plots the locations and lists gameplay tips. There is no build step. Open a file in any editor, or view the site locally or on GitHub Pages.
+The log is Markdown, a resource CSV, a location GeoJSON file, a hints file, and bot skill files. A static site plots the locations, lists gameplay tips, and lists the bot skills. There is no build step. Open a file in any editor, or view the site locally or on GitHub Pages.
 
 ## Purpose
 
@@ -17,13 +17,17 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/locations.geojson` | Map locations. One GeoJSON feature per discovered place. |
 | `data/location-schema.json` | Worlds, compass status, categories, icon shapes, and colors. |
 | `data/hints.json` | Gameplay tips. One object per tip. The hints page reads this file. |
-| `index.html`, `hints.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. |
+| `data/bot-skills.json` | Bot skill index: categories and one object per skill. The skills page reads this file. |
+| `index.html`, `hints.html`, `skills.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. |
 | `worlds/` | One Markdown file per known world, plus a template for a world that does not have a file yet. |
 | `logs/` | Travel journal. One Markdown file per day. |
 | `outpost/eden-outpost.md` | Supply crates at the owner's public outpost on Eden. |
 | `scripts/validate-locations.mjs` | Checks `data/locations.geojson` against the schema. |
 | `scripts/validate-hints.mjs` | Checks `data/hints.json` against the schema. |
+| `scripts/validate-bot-skills.mjs` | Checks `data/bot-skills.json` against the skill files. |
 | `scripts/place.test.mjs` | Checks the bearing-to-position math. |
+| `scripts/skills.test.mjs` | Checks skill search, the query string, and that skill Markdown is escaped. |
+| `bot-skills/` | One folder per bot skill. Each folder holds `SKILL.md`. See `bot-skills/README.md`. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
 Named worlds:
@@ -45,7 +49,7 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The pages load their data with `fetch`, so opening an HTML file directly will not show locations or hints. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, and an approximate fix. Helpful Hints is linked from the site navigation.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, or skills. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, and an approximate fix. Helpful Hints and Bot Skills are linked from the site navigation. Bot Skills is `skills.html`.
 
 ## Compass
 
@@ -85,7 +89,8 @@ Then run:
 ```sh
 node scripts/validate-locations.mjs
 node scripts/validate-hints.mjs
-node --test scripts/place.test.mjs
+node scripts/validate-bot-skills.mjs
+node --test scripts/place.test.mjs scripts/skills.test.mjs
 ```
 
 The same checks run in GitHub Actions.
@@ -199,6 +204,14 @@ This is the shape of a new place that is not the origin. It is not itself a feat
 
 The hints page has a search box and category checkboxes. It is `hints.html`.
 
+## Bot skills
+
+`bot-skills/` holds playbooks for the companion bot. Each skill is `bot-skills/<id>/SKILL.md`, with YAML frontmatter (`name`, `description`) and a Markdown body. `data/bot-skills.json` is the index the site reads. Categories are listed in that file, so a later group such as Combat, Mining, Trade, Ships, or Farming is a new entry there, not a change to the page.
+
+A skill is `verified` when the steps have been seen in play, and `draft` while a step is still unchecked. `starwild-climbing-and-bed-spawn` is `draft` because the bed spawn step is not verified yet.
+
+The skills page searches the name, description, tags, and body. Filters and sort are kept in the query string. `skills.html#<id>` opens that skill. The format and the steps for adding a skill are in `bot-skills/README.md`.
+
 ## GitHub Pages
 
 `.github/workflows/pages.yml` deploys the repository on each push to `main`. GitHub still needs one setting, once, from a repository admin:
@@ -218,10 +231,11 @@ If the push to `main` happened before that source was selected, open the **Actio
 3. For each resource actually seen, append one row to `data/resources.csv`. Leave `coordinates` empty when you do not have them. Set `source` to `bot` or `owner`.
 4. For each place that should appear on the map, append one feature to `data/locations.geojson` as described above. Set `source` to that day's log path.
 5. For each gameplay tip that was actually learned, append one object to `data/hints.json`.
-6. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
-7. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-8. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, and `node --test scripts/place.test.mjs`.
-9. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
+6. For a bot playbook that was actually learned, add a skill under `bot-skills/` as described in `bot-skills/README.md`.
+7. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
+8. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
+9. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs`.
+10. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.
 
