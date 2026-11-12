@@ -17,6 +17,7 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/locations.geojson` | Map locations. One GeoJSON feature per discovered place. |
 | `data/location-schema.json` | Worlds, compass status, categories, icon shapes, and colors. |
 | `data/terrain.geojson` | Surveyed ground for the topographic view: surfaces, and later ridges, rivers, lakes, and outcrops. |
+| `data/explored.geojson` | Ground V3KTR has traveled. The topographic sheet reveals a buffer around these points and paths. |
 | `data/surface-palette.json` | Fill colors for topographic surfaces. This is the only place those colors are set. |
 | `data/hints.json` | Gameplay tips. One object per tip. The hints page reads this file. |
 | `data/bot-skills.json` | Bot skill index: categories and one object per skill. The skills page reads this file. |
@@ -28,9 +29,11 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `scripts/validate-hints.mjs` | Checks `data/hints.json` against the schema. |
 | `scripts/validate-bot-skills.mjs` | Checks `data/bot-skills.json` against the skill files. |
 | `scripts/validate-terrain.mjs` | Checks `data/terrain.geojson` and `data/surface-palette.json`. |
+| `scripts/validate-explored.mjs` | Checks `data/explored.geojson`. |
 | `scripts/place.test.mjs` | Checks the bearing-to-position math. |
 | `scripts/skills.test.mjs` | Checks skill search, the query string, and that skill Markdown is escaped. |
 | `scripts/terrain.test.mjs` | Checks the topographic grid, contours, and surface colors. |
+| `scripts/explored.test.mjs` | Checks the explored-ground buffer and the fog readout. |
 | `bot-skills/` | One folder per bot skill. Each folder holds `SKILL.md`. See `bot-skills/README.md`. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
@@ -53,7 +56,7 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, or skills. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. Helpful Hints and Bot Skills are linked from the site navigation. Bot Skills is `skills.html`.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, or skills. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. Helpful Hints and Bot Skills are linked from the site navigation. Bot Skills is `skills.html`.
 
 The map has two views. **Simple** is the default dark survey plot. **Topographic** is the flat field sheet described below. The choice is stored in this browser. A link can force it with `?view=simple` or `?view=topo`.
 
@@ -90,9 +93,9 @@ The Eden origin is `eden-2026-11-12-dragons-lair-base`, stored at x 0, y 0. The 
 
 **Topographic** is a flat military field sheet. It does not shade hills and it does not fake a third dimension.
 
-- The base is muted olive paper. Ground that has not been surveyed stays that paper color.
-- Surveyed polygons in `data/terrain.geojson` are filled from `data/surface-palette.json`. A legend under the map lists every surface, including paper for ground that is not surveyed yet. The corner block on the sheet gives the grid, north, and datum.
-- Contour lines are decorative. Starwild has no elevation data. The lines come from seeded noise, so they stay put between loads. They are not heights. Every fifth line is a heavier index contour. A thin light edge keeps the brown line visible on dark ground. The sheet says: "Contours are decorative until terrain is surveyed."
+- The base is muted olive paper. Fog covers ground that has not been traveled. A revealed patch is the paper color until a survey gives it a surface.
+- Surveyed polygons in `data/terrain.geojson` are filled from `data/surface-palette.json`, and only inside explored ground. Two round buttons at the lower right of the map open the details, and both start closed. **?** is More info: the field sheet, the north note, and the explored readout. The layers button is the surface key. Each choice is remembered on its own, in `localStorage` under `starwild-cartographer.mapInfo` and `starwild-cartographer.mapLegend`. The scale bar stays on the map.
+- Contour lines are seeded, not measured heights. They stay put between loads, and they are drawn only on surveyed polygons that sit inside explored ground. Every fifth line is a heavier index contour. A thin light edge keeps the brown line visible on dark ground. The sheet says: "Fog = unexplored."
 - The grid is dark gray. Spacing follows the zoom in the manner of 100 m squares with a heavier line every tenth square, so a 100 m grid has 1 km index lines. Numbers sit on the edges and are display meters.
 - A scale bar is labeled in display meters.
 - The north arrow reads **N (provisional)** until `north_derived` is true for that world.
@@ -107,7 +110,7 @@ The file ships with one example polygon on Maren, `example-maren-grass`. It is h
 
 Change a hex value in `data/surface-palette.json` to match an in-game shade. That file is the only color list for these fills. To add a ground type, add an object to `surfaces`, then set `properties.surface` to its `id`. These ids stay in the palette so the legend can name them: `grass`, `forest`, `dirt`, `sand`, `snow`, `rock`, and `water`. A feature whose surface is not in the list is rejected by the checker. The page still has a fallback swatch, labeled "Other surface", for a palette that is newer than the script.
 
-Contours are not stored in the terrain file.
+Contours are not stored in the terrain file. The page draws them from a seeded field, and only where a surveyed polygon is inside explored ground.
 
 | Field | Meaning |
 | --- | --- |
@@ -125,10 +128,38 @@ Contours are not stored in the terrain file.
 | `river`, `ridge` | `LineString` or `MultiLineString`. |
 | `outcrop` | `Point`, `MultiPoint`, `Polygon`, or `MultiPolygon`. |
 
-Coordinates are `[east, north]` in display meters, the same plane as locations. A polygon ring is closed: the first position is repeated at the end. Lines and points are drawn above the surface fills and under the grid. Contours are drawn over the fills.
+Coordinates are `[east, north]` in display meters, the same plane as locations. A polygon ring is closed: the first position is repeated at the end. Lines and points are drawn above the surface fills and under the grid. Contours are drawn over the fills, and only inside explored ground.
 
 ```sh
 node scripts/validate-terrain.mjs
+```
+
+## Explored ground
+
+`data/explored.geojson` is a GeoJSON `FeatureCollection`. The topographic view reads it. The simple view ignores it. Fog covers every part of the sheet these features do not reach. Append a feature only when that ground was actually traveled. Do not invent a path.
+
+A visited point reveals a circle. A walked line reveals a strip. A polygon reveals its area. `properties.radius_m` is the buffer in meters. `null` uses `default_radius_m` on the collection. The default in this file is 40. The buffer is how far the sheet clears around the track. It is not a surveyed boundary. Keep it at or under 5000 meters.
+
+The page loads this file on open, again every 60 seconds, and when the tab gains focus. Each request bypasses the cache. The field-sheet block shows the share of the current view that is revealed, and the time of the last successful fetch. When `updated` is set to `YYYY-MM-DD` or an ISO timestamp, that stamp is shown too.
+
+Example features stay hidden. Open the topographic view with `?demo=1` to draw them. That query is for checking the sheet. It is not a record of travel. The example track is on Maren, its notes include `EXAMPLE`, and it stays off the simple view.
+
+The only real feature shipped here is Dragons Lair Base, the Eden origin, at east 0, north 0.
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Same string as the feature `id`. Non-empty, no whitespace, unique in the file. |
+| `example` | `true` hides the feature unless the page is opened with `?demo=1`. An example id starts with `example-`, and the notes include `EXAMPLE`. |
+| `world` | A world name from `data/location-schema.json`. The feature is used only while that world is selected. |
+| `radius_m` | Meters to clear around the geometry, or `null` to use `default_radius_m`. |
+| `date` | `YYYY-MM-DD`, or `null`. |
+| `source` | Log path, such as `logs/YYYY-MM-DD.md`, for a real track. `null` for an example. The log file has to exist. |
+| `notes` | What was walked, or `null`. |
+
+Geometry is `Point`, `MultiPoint`, `LineString`, `MultiLineString`, `Polygon`, or `MultiPolygon`. Coordinates are `[east, north]` in display meters. A polygon ring is closed. A hole in a polygon uses the opposite winding from the outer ring.
+
+```sh
+node scripts/validate-explored.mjs
 ```
 
 ## How to add a location
@@ -144,7 +175,8 @@ node scripts/validate-locations.mjs
 node scripts/validate-hints.mjs
 node scripts/validate-bot-skills.mjs
 node scripts/validate-terrain.mjs
-node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs
+node scripts/validate-explored.mjs
+node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs
 ```
 
 The same checks run in GitHub Actions.
@@ -284,12 +316,13 @@ If the push to `main` happened before that source was selected, open the **Actio
 2. Fill that day's sections: where you went, what you gathered, coordinates, what was new, and the Eden Outpost supply levels. Leave a section empty when you do not know.
 3. For each resource actually seen, append one row to `data/resources.csv`. Leave `coordinates` empty when you do not have them. Set `source` to `bot` or `owner`.
 4. For each place that should appear on the map, append one feature to `data/locations.geojson` as described above. Set `source` to that day's log path.
-5. For each gameplay tip that was actually learned, append one object to `data/hints.json`.
-6. For a bot playbook that was actually learned, add a skill under `bot-skills/` as described in `bot-skills/README.md`.
-7. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
-8. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-9. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-terrain.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs`.
-10. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
+5. For ground that was actually traveled, append a point or a line to `data/explored.geojson`. Leave `radius_m` null to use the file's default buffer. Do not invent a path.
+6. For each gameplay tip that was actually learned, append one object to `data/hints.json`.
+7. For a bot playbook that was actually learned, add a skill under `bot-skills/` as described in `bot-skills/README.md`.
+8. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
+9. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
+10. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs`.
+11. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.
 

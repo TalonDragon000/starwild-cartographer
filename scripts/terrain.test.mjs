@@ -9,6 +9,7 @@ import {
   elevation,
   fieldForView,
   militarySteps,
+  parseInfoOpen,
   parseView,
   sampleField,
   scaleSpec,
@@ -46,6 +47,13 @@ test("view query accepts topo and simple only", () => {
   assert.equal(parseView("SIMPLE"), "simple");
   assert.equal(parseView("banana"), null);
   assert.equal(parseView(null), null);
+});
+
+test("map info stays closed unless it was saved open", () => {
+  assert.equal(parseInfoOpen("open"), true);
+  assert.equal(parseInfoOpen("closed"), false);
+  assert.equal(parseInfoOpen(null), false);
+  assert.equal(parseInfoOpen(""), false);
 });
 
 test("elevation is stable and varies across the plane", () => {

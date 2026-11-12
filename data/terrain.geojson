@@ -1,6 +1,6 @@
 {
   "type": "FeatureCollection",
-  "description": "Surveyed terrain drawn by the topographic view. Coordinates are display meters, [east, north], on the same plane as data/locations.geojson. The schema is documented in the README. Contours are not stored here; the page draws them as decoration. This file ships with one example polygon. It is hidden until Show examples is on, and it is not a surveyed place.",
+  "description": "Surveyed terrain drawn by the topographic view. Coordinates are display meters, [east, north], on the same plane as data/locations.geojson. The schema is documented in the README. Contours are not stored here. The sheet draws them only on surveyed ground that has also been explored. This file ships with one example polygon. It is hidden until Show examples is on, and it is not a surveyed place.",
   "features": [
     {
       "type": "Feature",
