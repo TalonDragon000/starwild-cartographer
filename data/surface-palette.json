@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "description": "Flat fill colors for the topographic view. Edit these hex values to match in-game shades. Add an object to surfaces for a new ground type, then set properties.surface to its id in data/terrain.geojson. Unsurveyed ground stays paper.",
+  "paper": "#b7b18c",
+  "ink": "#1a1712",
+  "contour": "#4a2c16",
+  "contourIndex": "#2c1a0e",
+  "grid": "#1a1712",
+  "gridMinor": "#3f3c34",
+  "markerPlate": "#10201c",
+  "markerRing": "#f4efe2",
+  "fallback": {
+    "id": "other",
+    "label": "Other surface",
+    "fill": "#a89878",
+    "stroke": "#3a3228"
+  },
+  "surfaces": [
+    {
+      "id": "grass",
+      "label": "Grass",
+      "fill": "#6f8a32",
+      "stroke": "#243010"
+    },
+    {
+      "id": "forest",
+      "label": "Forest / woodland",
+      "fill": "#2c4a30",
+      "stroke": "#101c12"
+    },
+    {
+      "id": "dirt",
+      "label": "Dirt",
+      "fill": "#8d5e3a",
+      "stroke": "#3a2416"
+    },
+    {
+      "id": "sand",
+      "label": "Sand",
+      "fill": "#e8c85a",
+      "stroke": "#5c4310"
+    },
+    {
+      "id": "snow",
+      "label": "Snow / ice",
+      "fill": "#f4f8fb",
+      "stroke": "#3a4e5c"
+    },
+    {
+      "id": "rock",
+      "label": "Rock",
+      "fill": "#6a6560",
+      "stroke": "#242220"
+    },
+    {
+      "id": "water",
+      "label": "Water",
+      "fill": "#4e7384",
+      "stroke": "#16303a"
+    }
+  ]
+}

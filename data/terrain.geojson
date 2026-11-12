@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "description": "Surveyed terrain drawn by the topographic view. Coordinates are display meters, [east, north], on the same plane as data/locations.geojson. The schema is documented in the README. Contours are not stored here; the page draws them as decoration. This file ships with one example polygon. It is hidden until Show examples is on, and it is not a surveyed place.",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "example-maren-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [125, 55],
+            [215, 70],
+            [200, 155],
+            [140, 140],
+            [125, 55]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "example-maren-grass",
+        "example": true,
+        "world": "Maren",
+        "kind": "surface",
+        "surface": "grass",
+        "name": "EXAMPLE grass",
+        "notes": "EXAMPLE. Not a survey. A sample surface polygon so the topographic fill can be checked. Hidden until Show examples is on."
+      }
+    }
+  ]
+}

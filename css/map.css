@@ -9,6 +9,14 @@
   --focus: #ffcc66;
   --map: #08141c;
   --glow: 0 0 0 1px rgba(8, 20, 28, 0.9), 0 0 14px rgba(94, 224, 212, 0.2);
+  --topo-paper: #b7b18c;
+  --topo-ink: #1a1712;
+  --topo-contour: #4a2c16;
+  --topo-contour-index: #2c1a0e;
+  --topo-grid: #1a1712;
+  --topo-grid-minor: #3f3c34;
+  --topo-marker-plate: #10201c;
+  --topo-marker-ring: #f4efe2;
   color-scheme: dark;
 }
 
@@ -126,6 +134,94 @@ h3 {
 h1 { margin: 0.15rem 0 0.4rem; font-size: 2.4rem; }
 
 h2 { margin: 0 0 0.6rem; font-size: 1.4rem; }
+
+.map-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.map-heading-row h2 { margin: 0; }
+
+.view-switch {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: min(100%, 18rem);
+}
+
+.view-switch legend {
+  margin-bottom: 0.3rem;
+  color: var(--gold);
+  font-family: Orbitron, "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--glow);
+}
+
+.segment {
+  position: relative;
+  flex: 1;
+  display: flex;
+  margin: 0;
+  min-height: 44px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.segment input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segment span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.75rem;
+  background: #07141c;
+  color: var(--cyan);
+  border-left: 1px solid var(--line);
+  font-family: Orbitron, "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.segment:first-child span { border-left: 0; }
+
+.segment input:checked + span {
+  background: var(--gold);
+  color: #1a1712;
+}
+
+.segment input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+.segment:hover span { background: #12303a; }
+
+.segment input:checked:hover + span,
+.segment input:checked + span { background: var(--gold); color: #1a1712; }
 
 .lede, .site-footer, .map-note {
   color: var(--muted);
@@ -267,16 +363,233 @@ fieldset {
 
 .cursor { bottom: 1.8rem; }
 
+.cursor:empty { display: none; }
+
 .grid-step { bottom: 0.35rem; }
 
-.map-note { margin: 0.6rem 0 0; }
+html[data-view="topo"] .map-frame,
+html[data-view="topo"] #map,
+.map-frame.view-topo,
+.map-frame.view-topo #map,
+.map-frame.view-topo .leaflet-container {
+  background: var(--topo-paper);
+}
 
+.map-frame.view-topo .grid-step { display: none; }
+
+.map-frame.view-topo .hud {
+  background: rgba(244, 239, 226, 0.94);
+  color: var(--topo-ink);
+  border: 1px solid var(--topo-ink);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.sheet-card {
+  position: absolute;
+  z-index: 500;
+  top: 4.7rem;
+  left: 0.55rem;
+  width: min(13.5rem, calc(100% - 6.5rem));
+  max-height: calc(100% - 6.4rem);
+  overflow: auto;
+  padding: 0.45rem 0.55rem 0.4rem;
+  background: rgba(244, 239, 226, 0.96);
+  color: var(--topo-ink);
+  border: 1.5px solid var(--topo-ink);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.sheet-card.is-covered { visibility: hidden; }
+
+.sheet-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sheet-world {
+  margin: 0.05rem 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sheet-facts {
+  display: grid;
+  grid-template-columns: 5.4rem minmax(0, 1fr);
+  gap: 0.12rem 0.4rem;
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+}
+
+.sheet-facts div { display: contents; }
+
+.sheet-facts dt { font-weight: 700; }
+
+.sheet-facts dd { margin: 0; }
+
+.surface-panel {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem 0.85rem;
+  background: rgba(12, 26, 36, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: var(--glow);
+}
+
+.surface-panel h3 {
+  margin: 0 0 0.45rem;
+  color: var(--gold);
+  font-family: Orbitron, "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.surface-panel-note {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.surface-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.surface-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 1.7rem;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 0.82rem;
+}
+
+.surface-swatch {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  border: 2px solid currentColor;
+}
+
+.map-frame.view-topo .compass-rose {
+  max-width: 7.4rem;
+  padding: 0.28rem 0.35rem 0.15rem;
+  background: rgba(244, 239, 226, 0.94);
+  color: var(--topo-ink);
+  border: 1.5px solid var(--topo-ink);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow: none;
+}
+
+.map-frame.view-topo .compass-rose span {
+  display: block;
+  max-width: 6.6rem;
+  line-height: 1.25;
+}
+
+.map-frame.view-topo .compass-rose polygon:first-child { fill: var(--topo-ink); }
+.map-frame.view-topo .compass-rose polygon:last-child { fill: #5c5344; }
+
+.scale-bar[hidden] { display: none !important; }
+
+.scale-bar {
+  position: absolute;
+  z-index: 500;
+  left: 50%;
+  bottom: 0.45rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  padding: 0.22rem 0.4rem 0.28rem;
+  background: rgba(244, 239, 226, 0.94);
+  color: var(--topo-ink);
+  border: 1.5px solid var(--topo-ink);
+  pointer-events: none;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.scale-caption {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scale-rule {
+  display: flex;
+  height: 0.72rem;
+  border: 1.5px solid #16140f;
+}
+
+.scale-seg { display: block; height: 100%; }
+.scale-seg.dark { background: #16140f; }
+.scale-seg.light { background: #f7f4ea; }
+
+.scale-labels {
+  position: relative;
+  height: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.scale-labels span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+
+.contour-layer,
 .meter-grid {
   position: absolute;
   left: 0;
   top: 0;
   pointer-events: none;
 }
+
+.terrain-example-tag {
+  background: #1a1712;
+  color: #f6f1e4;
+  border: 1px solid #f6f1e4;
+  border-radius: 2px;
+  padding: 0.1rem 0.35rem;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  box-shadow: none;
+}
+
+.terrain-example-tag::before { display: none; }
+
+.terrain-card h3 { margin: 0.2rem 0 0.45rem; font-size: 1.15rem; }
+
+.terrain-card dl {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.2rem 0.5rem;
+  margin: 0;
+}
+
+.terrain-card dt { font-weight: 700; }
+.terrain-card dd { margin: 0; }
+
+.map-note { margin: 0.6rem 0 0; }
 
 .map-pin.leaflet-div-icon { background: transparent; border: none; }
 
@@ -455,6 +768,13 @@ code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 0.85rem
   .workspace { grid-template-columns: 1fr; }
   .map-frame { height: 70vh; min-height: 22rem; }
   h1 { font-size: 2rem; }
+  .view-switch { width: 100%; }
+  .sheet-card { width: min(15rem, calc(100% - 4.2rem)); }
+  .scale-bar {
+    left: 0.45rem;
+    bottom: 3.6rem;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
