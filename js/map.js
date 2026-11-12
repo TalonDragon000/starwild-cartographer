@@ -150,6 +150,11 @@ legendToggle.addEventListener("click", () => {
 });
 document.addEventListener("keydown", onMapPanelKeydown, true);
 document.addEventListener("pointerdown", onMapPanelPointerDown);
+for (const panel of [infoPanel, legendPanel]) {
+  panel.addEventListener("scroll", () => measurePanelRails(), { passive: true });
+}
+window.addEventListener("resize", () => measurePanelRails());
+if (map) map.on("resize", () => measurePanelRails());
 if (map) {
   map.on("mousemove", (event) => {
     cursor.textContent = formatEastNorth(event.latlng.lng, event.latlng.lat);
@@ -859,6 +864,7 @@ function syncInfoPanel(options = {}) {
   if (options.persist !== false) writePanelOpen(INFO_STORAGE_KEY, infoOpen);
   if (options.focus === "panel" && infoOpen) infoPanel.focus();
   if (options.focus === "toggle" && !infoOpen) infoToggle.focus();
+  placePanelRails();
 }
 
 function syncLegendPanel(options = {}) {
@@ -870,6 +876,39 @@ function syncLegendPanel(options = {}) {
   if (options.persist !== false) writePanelOpen(LEGEND_STORAGE_KEY, legendOpen);
   if (options.focus === "panel" && show) legendPanel.focus();
   if (options.focus === "toggle" && !show && topographic) legendToggle.focus();
+  placePanelRails();
+}
+
+function placePanelRails() {
+  requestAnimationFrame(measurePanelRails);
+}
+
+function measurePanelRails() {
+  const corner = document.querySelector(".map-corner");
+  if (!corner) return;
+  const cornerBox = corner.getBoundingClientRect();
+  for (const rail of document.querySelectorAll(".map-panel-rail")) {
+    const panel = document.getElementById(rail.dataset.panel);
+    const thumb = rail.querySelector("span");
+    if (!panel || panel.hidden) {
+      rail.hidden = true;
+      continue;
+    }
+    const overflow = panel.scrollHeight - panel.clientHeight;
+    if (overflow <= 2) {
+      rail.hidden = true;
+      continue;
+    }
+    const panelBox = panel.getBoundingClientRect();
+    rail.hidden = false;
+    rail.style.top = `${panelBox.top - cornerBox.top}px`;
+    rail.style.height = `${panelBox.height}px`;
+    const thumbHeight = Math.max(28, (panel.clientHeight / panel.scrollHeight) * panel.clientHeight);
+    const travel = Math.max(0, panel.clientHeight - thumbHeight);
+    const offset = (panel.scrollTop / overflow) * travel;
+    thumb.style.height = `${thumbHeight}px`;
+    thumb.style.transform = `translateY(${offset}px)`;
+  }
 }
 
 function onMapPanelKeydown(event) {
@@ -1539,6 +1578,7 @@ function updateExploreChrome(fraction) {
     exploredFetchedAt,
   );
   if (sheetExplored.textContent !== text) sheetExplored.textContent = text;
+  placePanelRails();
 }
 
 function ringCenter(ring) {
