@@ -1,0 +1,70 @@
+{
+  "worlds": ["Eden", "Hush", "Vesper", "Maren", "Talus", "Thorne"],
+  "world_compass": {
+    "Eden": { "north_derived": false, "north_note": null },
+    "Hush": { "north_derived": false, "north_note": null },
+    "Vesper": { "north_derived": false, "north_note": null },
+    "Maren": { "north_derived": false, "north_note": null },
+    "Talus": { "north_derived": false, "north_note": null },
+    "Thorne": { "north_derived": false, "north_note": null }
+  },
+  "categories": [
+    {
+      "id": "ores",
+      "label": "Ores / minerals",
+      "shape": "diamond",
+      "color": "#e6a15c"
+    },
+    {
+      "id": "crash-sites",
+      "label": "Crash sites / travel pods",
+      "shape": "triangle",
+      "color": "#ff6b5a"
+    },
+    {
+      "id": "plants",
+      "label": "Plants & food",
+      "shape": "circle",
+      "color": "#7dce6a"
+    },
+    {
+      "id": "creatures",
+      "label": "Creatures",
+      "shape": "hex",
+      "color": "#d2a4ff"
+    },
+    {
+      "id": "structures",
+      "label": "Structures / landmarks",
+      "shape": "square",
+      "color": "#8ec8f0"
+    },
+    {
+      "id": "outposts",
+      "label": "Outposts",
+      "shape": "star",
+      "color": "#ffe08a"
+    },
+    {
+      "id": "spawns",
+      "label": "Spawn / landing sites",
+      "shape": "crosshair",
+      "color": "#5ee0d0"
+    },
+    {
+      "id": "other",
+      "label": "Other",
+      "shape": "ring",
+      "color": "#d9d3c5"
+    }
+  ],
+  "display": {
+    "units": "meters",
+    "x_axis": "east",
+    "y_axis": "north",
+    "bearing": "degrees clockwise from derived north",
+    "z_plotted": false,
+    "formula": "x = anchor_x + distance_m * sin(bearing_deg); y = anchor_y + distance_m * cos(bearing_deg)",
+    "note": "Starwild has no in-game coordinates or compass. Each world has its own display plane in meters. North is derived per world from the motion of the sun or the star. Until that derivation is recorded, north_derived is false and real bearings stay null. The origin anchor is (0, 0). Other points use a bearing and a distance from an anchor. x and y are optional explicit meters; when they are null, the map computes the display position. z is not plotted."
+  }
+}
