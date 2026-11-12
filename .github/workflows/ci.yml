@@ -19,4 +19,5 @@ jobs:
         run: |
           node scripts/validate-locations.mjs
           node scripts/validate-hints.mjs
-          node --test scripts/place.test.mjs
+          node scripts/validate-terrain.mjs
+          node --test scripts/place.test.mjs scripts/terrain.test.mjs

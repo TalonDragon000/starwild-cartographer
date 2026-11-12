@@ -10,6 +10,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="css/map.css">
+  <script>
+    (function () {
+      try {
+        var requested = new URLSearchParams(location.search).get("view");
+        var stored = localStorage.getItem("starwild-cartographer.mapView");
+        var view = (requested || stored || "").toLowerCase();
+        if (view === "topo" || view === "topographic") {
+          document.documentElement.dataset.view = "topo";
+        }
+      } catch (error) {
+        // The map script applies the view again after the page is ready.
+      }
+    })();
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#locations">Skip to location list</a>
@@ -61,20 +75,55 @@
       <section class="map-column" aria-labelledby="map-heading">
         <div class="map-heading-row">
           <h2 id="map-heading">Map</h2>
+          <fieldset class="view-switch">
+            <legend>View</legend>
+            <div class="segmented">
+              <label class="segment">
+                <input type="radio" name="map-view" value="simple" checked>
+                <span>Simple</span>
+              </label>
+              <label class="segment">
+                <input type="radio" name="map-view" value="topo">
+                <span>Topographic</span>
+              </label>
+            </div>
+          </fieldset>
         </div>
         <p id="north-note" class="hint"></p>
         <div class="map-frame">
           <div id="map"></div>
+          <aside id="sheet-card" class="sheet-card" hidden aria-label="Topographic sheet">
+            <p class="sheet-kicker">Field sheet</p>
+            <p id="sheet-world" class="sheet-world">—</p>
+            <dl class="sheet-facts">
+              <div><dt>Grid</dt><dd id="sheet-grid">—</dd></div>
+              <div><dt>North</dt><dd id="sheet-north">Provisional</dd></div>
+              <div><dt>Contours</dt><dd>Decorative</dd></div>
+              <div><dt>Datum</dt><dd>Display meters</dd></div>
+            </dl>
+          </aside>
           <div class="compass-rose" aria-hidden="true">
-            <span>N</span>
+            <span id="compass-label">N</span>
             <svg viewBox="0 0 48 64" width="36" height="48">
               <polygon points="24,4 32,36 24,30 16,36" fill="#ffcc66"></polygon>
               <polygon points="24,60 32,36 24,42 16,36" fill="#5eead4"></polygon>
             </svg>
           </div>
+          <div id="scale-bar" class="scale-bar" hidden role="img" aria-label="Scale bar">
+            <p class="scale-caption">Scale</p>
+            <div id="scale-rule" class="scale-rule" aria-hidden="true"></div>
+            <div id="scale-labels" class="scale-labels" aria-hidden="true"></div>
+          </div>
           <p id="cursor" class="hud cursor" aria-hidden="true"></p>
           <p id="grid-step" class="hud grid-step" aria-hidden="true"></p>
         </div>
+        <p id="topo-note" class="map-note" hidden>Contours are decorative until terrain is surveyed.</p>
+        <section id="surface-panel" class="surface-panel" hidden aria-labelledby="surface-legend-title">
+          <h3 id="surface-legend-title">Surfaces</h3>
+          <ul id="surface-legend" class="surface-legend"></ul>
+          <p class="surface-panel-note">Unsurveyed ground stays the paper color.</p>
+        </section>
+        <p id="view-status" class="visually-hidden" role="status"></p>
         <p id="map-empty" class="map-note" hidden></p>
       </section>
     </div>

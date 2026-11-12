@@ -4,6 +4,17 @@ import {
   formatMeters,
   isFiniteNumber,
 } from "./place.js";
+import {
+  VIEW_STORAGE_KEY,
+  contourGeometry,
+  elevation,
+  fieldForView,
+  militarySteps,
+  parseView,
+  scaleSpec,
+  terrainPresentation,
+  terrainVisible,
+} from "./terrain.js";
 
 const form = document.querySelector("#filters");
 const worldSelect = document.querySelector("#world");
@@ -18,6 +29,20 @@ const cursor = document.querySelector("#cursor");
 const loadError = document.querySelector("#load-error");
 const caption = document.querySelector("#locations caption");
 const tbody = document.querySelector("#locations tbody");
+const mapFrame = document.querySelector(".map-frame");
+const viewInputs = [...document.querySelectorAll('input[name="map-view"]')];
+const sheetCard = document.querySelector("#sheet-card");
+const sheetWorld = document.querySelector("#sheet-world");
+const sheetGrid = document.querySelector("#sheet-grid");
+const sheetNorth = document.querySelector("#sheet-north");
+const surfaceLegend = document.querySelector("#surface-legend");
+const surfacePanel = document.querySelector("#surface-panel");
+const scaleBar = document.querySelector("#scale-bar");
+const scaleRule = document.querySelector("#scale-rule");
+const scaleLabels = document.querySelector("#scale-labels");
+const topoNote = document.querySelector("#topo-note");
+const viewStatus = document.querySelector("#view-status");
+const compassLabel = document.querySelector("#compass-label");
 
 const markers = new Map();
 let schema = null;
@@ -26,6 +51,13 @@ let byId = new Map();
 let categoriesById = new Map();
 let positions = new Map();
 let skipped = 0;
+let mapView = "simple";
+let palette = null;
+let surfacesById = new Map();
+let terrainCollection = null;
+let terrainLayer = null;
+let redrawGrid = () => {};
+let redrawContours = () => {};
 
 if (typeof L === "undefined") {
   showError("The map library did not load. The page can still list locations once the data file loads.");
@@ -45,7 +77,15 @@ if (map) {
   map.setView(L.latLng(0, 0), 0, { animate: false });
 }
 const markerLayer = map ? L.layerGroup().addTo(map) : null;
-if (map) meterGrid().addTo(map);
+if (map) {
+  createTerrainPanes(map);
+  terrainLayer = L.featureGroup().addTo(map);
+  contourOverlay().addTo(map);
+  meterGrid().addTo(map);
+  map.on("move zoom viewreset resize", drawScaleBar);
+  map.on("popupopen", () => sheetCard.classList.add("is-covered"));
+  map.on("popupclose", () => sheetCard.classList.remove("is-covered"));
+}
 
 form.addEventListener("submit", (event) => event.preventDefault());
 worldSelect.addEventListener("change", render);
@@ -53,6 +93,13 @@ searchInput.addEventListener("input", render);
 examplesInput.addEventListener("change", render);
 document.querySelector("#categories-all").addEventListener("click", () => setCategories(true));
 document.querySelector("#categories-none").addEventListener("click", () => setCategories(false));
+for (const input of viewInputs) {
+  input.addEventListener("change", () => {
+    if (!input.checked) return;
+    setMapView(input.value, { persist: true, announce: true, restyle: true });
+  });
+}
+applyInitialView();
 if (map) {
   map.on("mousemove", (event) => {
     cursor.textContent = formatEastNorth(event.latlng.lng, event.latlng.lat);
@@ -66,12 +113,22 @@ main();
 
 async function main() {
   try {
-    const [loadedSchema, collection] = await Promise.all([
+    const [loadedSchema, collection, terrainResult, paletteResult] = await Promise.all([
       fetchJson("data/location-schema.json"),
       fetchJson("data/locations.geojson"),
+      fetchJson("data/terrain.geojson").then(
+        (data) => ({ ok: true, data }),
+        () => ({ ok: false, data: null }),
+      ),
+      fetchJson("data/surface-palette.json").then(
+        (data) => ({ ok: true, data }),
+        () => ({ ok: false, data: null }),
+      ),
     ]);
     schema = loadedSchema;
     categoriesById = new Map((schema.categories ?? []).map((category) => [category.id, category]));
+    terrainCollection = terrainResult.ok ? terrainResult.data : null;
+    if (paletteResult.ok) applyPalette(paletteResult.data);
     const accepted = [];
     for (const feature of collection.features ?? []) {
       if (usable(feature)) accepted.push(feature);
@@ -82,11 +139,19 @@ async function main() {
     positions = new Map(features.map((feature) => [feature.id, displayPosition(feature, byId)]));
     buildWorlds();
     buildCategories();
+    const problems = [];
     if (skipped > 0) {
-      showError(
+      problems.push(
         `${skipped} location${skipped === 1 ? "" : "s"} could not be read and ${skipped === 1 ? "was" : "were"} left off the map.`,
       );
     }
+    if (!paletteResult.ok) {
+      problems.push("The surface palette did not load. Topographic fills stay on the paper base.");
+    }
+    if (!terrainResult.ok) {
+      problems.push("Terrain data did not load. Topographic view has no surveyed ground.");
+    }
+    if (problems.length > 0) showError(problems.join(" "));
     render();
   } catch (error) {
     showError("The map could not load location data. Check data/locations.geojson and data/location-schema.json.");
@@ -166,8 +231,9 @@ function render() {
   const northDerived = schema.world_compass?.[world]?.north_derived === true;
 
   mapHeading.textContent = `Map of ${world}`;
-  document.querySelector(".map-frame").setAttribute("aria-label", `Map of ${world}`);
+  mapFrame.setAttribute("aria-label", `Map of ${world}`);
   northNote.textContent = northCopy(world);
+  updateSheetFacts();
 
   for (const count of categoryList.querySelectorAll(".count")) {
     const category = count.dataset.category;
@@ -191,6 +257,7 @@ function render() {
   });
 
   if (map) drawMarkers(visible, northDerived);
+  syncTerrain();
   drawTable(visible, world, query, northDerived);
   const plotted = visible.filter((feature) => positions.get(feature.id)).length;
   const exampleNote = showExamples ? "Examples are shown." : "Examples are hidden.";
@@ -242,7 +309,7 @@ function haystack(feature) {
     .toLowerCase();
 }
 
-function drawMarkers(visible, northDerived) {
+function drawMarkers(visible, northDerived, options = {}) {
   map.closePopup();
   markerLayer.clearLayers();
   markers.clear();
@@ -258,6 +325,7 @@ function drawMarkers(visible, northDerived) {
         html: iconSvg(category.shape, category.color, {
           example: properties.example,
           approximate: properties.approximate,
+          plate: mapView === "topo",
         }),
         iconSize: [30, 30],
         iconAnchor: [15, 15],
@@ -276,7 +344,7 @@ function drawMarkers(visible, northDerived) {
     markers.set(feature.id, marker);
     plotted.push(position);
   }
-  fitMap(plotted);
+  if (options.fit !== false) fitMap(plotted);
 }
 
 function fitMap(plotted) {
@@ -508,8 +576,13 @@ function showError(message) {
 }
 
 function iconSvg(shape, color, flags) {
-  const fill = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#d9d3c5";
+  const fill = isHex(color) ? color : "#d9d3c5";
   const body = SHAPES[shape]?.(fill) ?? SHAPES.ring(fill);
+  const plateFill = isHex(palette?.markerPlate) ? palette.markerPlate : "#10201c";
+  const plateRing = isHex(palette?.markerRing) ? palette.markerRing : "#f4efe2";
+  const plate = flags.plate
+    ? `<circle cx="16" cy="16" r="15" fill="${plateFill}" stroke="${plateRing}" stroke-width="1.2"/>`
+    : "";
   const rings = [];
   if (flags.approximate) {
     rings.push(
@@ -521,7 +594,7 @@ function iconSvg(shape, color, flags) {
       '<circle cx="16" cy="16" r="15" fill="none" stroke="#ffd56a" stroke-width="1.2" stroke-dasharray="3 2"/>',
     );
   }
-  return `<svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">${body}${rings.join("")}</svg>`;
+  return `<svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">${plate}${body}${rings.join("")}</svg>`;
 }
 
 const STAR_POINTS = Array.from({ length: 10 }, (_, index) => {
@@ -555,6 +628,7 @@ function meterGrid() {
       this._canvas.setAttribute("aria-hidden", "true");
       layerMap.getPane("overlayPane").appendChild(this._canvas);
       this._draw = () => drawMeterGrid(layerMap, this._canvas);
+      redrawGrid = () => this._draw();
       layerMap.on("move zoom viewreset resize", this._draw);
       this._draw();
     },
@@ -586,6 +660,10 @@ function drawMeterGrid(layerMap, canvas) {
   const xMax = Math.max(northWest.lng, southEast.lng);
   const yMin = Math.min(northWest.lat, southEast.lat);
   const yMax = Math.max(northWest.lat, southEast.lat);
+  if (mapView === "topo") {
+    drawMilitaryGrid(context, layerMap, size, xMin, xMax, yMin, yMax);
+    return;
+  }
   const step = niceStep(Math.max(xMax - xMin, yMax - yMin));
   if (!isFiniteNumber(step) || step <= 0) return;
   const gridReadout = document.querySelector("#grid-step");
@@ -651,4 +729,472 @@ function niceStep(span) {
   const fraction = rough / power;
   const multiplier = fraction >= 5 ? 5 : fraction >= 2 ? 2 : 1;
   return multiplier * power;
+}
+
+function applyInitialView() {
+  const requested = new URLSearchParams(location.search).get("view");
+  const urlView = parseView(requested);
+  let stored = null;
+  try {
+    stored = parseView(localStorage.getItem(VIEW_STORAGE_KEY));
+  } catch {
+    stored = null;
+  }
+  const initial = urlView ?? stored ?? "simple";
+  setMapView(initial, { persist: false, announce: false, restyle: false });
+  if (urlView) {
+    try {
+      localStorage.setItem(VIEW_STORAGE_KEY, urlView);
+    } catch {
+      // Storage can be blocked. The URL still selects the view.
+    }
+  }
+  if (requested !== null && requested !== initial) {
+    writeViewUrl(initial);
+  }
+}
+
+function setMapView(next, options = {}) {
+  const view = parseView(next) ?? "simple";
+  mapView = view;
+  for (const input of viewInputs) input.checked = input.value === view;
+  mapFrame.classList.toggle("view-topo", view === "topo");
+  mapFrame.classList.toggle("view-simple", view === "simple");
+  if (view === "topo") document.documentElement.dataset.view = "topo";
+  else delete document.documentElement.dataset.view;
+  const topographic = view === "topo";
+  sheetCard.hidden = !topographic;
+  scaleBar.hidden = !topographic;
+  topoNote.hidden = !topographic;
+  surfacePanel.hidden = !topographic;
+  updateSheetFacts();
+  if (options.announce) {
+    viewStatus.textContent = topographic
+      ? "Topographic view. Contours are decorative until terrain is surveyed."
+      : "Simple view.";
+  }
+  if (options.persist) {
+    try {
+      localStorage.setItem(VIEW_STORAGE_KEY, view);
+    } catch {
+      // The control still switches the view when storage is unavailable.
+    }
+    writeViewUrl(view);
+  }
+  redrawGrid();
+  redrawContours();
+  drawScaleBar();
+  if (options.restyle) {
+    restyleMarkers();
+    syncTerrain();
+  }
+}
+
+function writeViewUrl(view) {
+  const url = new URL(location.href);
+  url.searchParams.set("view", view === "topo" ? "topo" : "simple");
+  history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+function northIsDerived(world) {
+  return schema?.world_compass?.[world]?.north_derived === true;
+}
+
+function updateSheetFacts(gridText) {
+  const world = worldSelect.value;
+  const northDerived = northIsDerived(world);
+  sheetWorld.textContent = world || "—";
+  sheetNorth.textContent = northDerived ? "Derived" : "Provisional";
+  if (gridText) sheetGrid.textContent = gridText;
+  const provisional = mapView === "topo" && !northDerived;
+  compassLabel.textContent = provisional ? "N (provisional)" : "N";
+}
+
+function applyPalette(next) {
+  if (!next || !Array.isArray(next.surfaces)) return;
+  palette = next;
+  surfacesById = new Map(next.surfaces.map((surface) => [surface.id, surface]));
+  const pairs = [
+    ["--topo-paper", next.paper],
+    ["--topo-ink", next.ink],
+    ["--topo-contour", next.contour],
+    ["--topo-contour-index", next.contourIndex],
+    ["--topo-grid", next.grid],
+    ["--topo-grid-minor", next.gridMinor],
+    ["--topo-marker-plate", next.markerPlate],
+    ["--topo-marker-ring", next.markerRing],
+  ];
+  for (const [key, value] of pairs) {
+    if (isHex(value)) mapFrame.style.setProperty(key, value);
+  }
+  buildSurfaceLegend();
+}
+
+function buildSurfaceLegend() {
+  surfaceLegend.replaceChildren();
+  if (!palette) return;
+  surfaceLegend.append(legendItem("Paper, not surveyed", palette.paper, palette.ink));
+  for (const surface of palette.surfaces) {
+    surfaceLegend.append(legendItem(surface.label, surface.fill, surface.stroke));
+  }
+  if (palette.fallback) {
+    surfaceLegend.append(legendItem(palette.fallback.label, palette.fallback.fill, palette.fallback.stroke));
+  }
+}
+
+function legendItem(label, fill, stroke) {
+  const item = document.createElement("li");
+  const swatch = document.createElement("span");
+  swatch.className = "surface-swatch";
+  swatch.style.background = isHex(fill) ? fill : "transparent";
+  swatch.style.borderColor = isHex(stroke) ? stroke : "currentColor";
+  const name = document.createElement("span");
+  name.textContent = label;
+  item.append(swatch, name);
+  return item;
+}
+
+function restyleMarkers() {
+  if (!schema || !map) return;
+  const world = worldSelect.value;
+  const query = searchInput.value.trim().toLowerCase();
+  const showExamples = examplesInput.checked;
+  const categories = selectedCategories();
+  const northDerived = northIsDerived(world);
+  const visible = features.filter((feature) => {
+    const properties = feature.properties;
+    if (properties.world !== world) return false;
+    if (properties.example && !showExamples) return false;
+    if (!categories.has(properties.category)) return false;
+    return matchesQuery(feature, query);
+  });
+  drawMarkers(visible, northDerived, { fit: false });
+}
+
+function syncTerrain() {
+  if (!terrainLayer) return;
+  terrainLayer.clearLayers();
+  if (mapView !== "topo" || !terrainCollection) return;
+  const world = worldSelect.value;
+  const showExamples = examplesInput.checked;
+  for (const feature of terrainCollection.features ?? []) {
+    if (!terrainVisible(feature, world, showExamples)) continue;
+    addTerrainFeature(feature);
+  }
+}
+
+function addTerrainFeature(feature) {
+  const presentation = terrainPresentation(feature, palette);
+  const popup = () => terrainPopup(feature);
+  if (presentation.layer === "point") {
+    const layer = L.geoJSON(feature, {
+      pane: "terrainLine",
+      pointToLayer: (_feature, latlng) =>
+        L.circleMarker(latlng, {
+          pane: "terrainLine",
+          radius: presentation.radius,
+          color: presentation.color,
+          weight: 2,
+          fillColor: presentation.fill,
+          fillOpacity: presentation.fillOpacity,
+        }),
+    });
+    layer.bindPopup(popup, { maxWidth: 280, minWidth: 180 });
+    layer.addTo(terrainLayer);
+    return;
+  }
+  if (presentation.layer === "line") {
+    const layer = L.geoJSON(feature, {
+      pane: "terrainLine",
+      style: {
+        color: presentation.color,
+        weight: presentation.weight,
+        opacity: 1,
+        dashArray: presentation.dashArray,
+        lineCap: "round",
+        lineJoin: "round",
+      },
+    });
+    layer.bindPopup(popup, { maxWidth: 280, minWidth: 180 });
+    layer.addTo(terrainLayer);
+    return;
+  }
+  const layer = L.geoJSON(feature, {
+    pane: "terrainFill",
+    style: {
+      color: presentation.color,
+      weight: presentation.weight,
+      opacity: 1,
+      fillColor: presentation.fill,
+      fillOpacity: presentation.fillOpacity,
+      dashArray: presentation.dashArray,
+    },
+  });
+  layer.bindPopup(popup, { maxWidth: 280, minWidth: 180 });
+  if (feature.properties?.example) {
+    layer.eachLayer((path) => {
+      path.bindTooltip("EXAMPLE", {
+        permanent: true,
+        direction: "center",
+        className: "terrain-example-tag",
+        opacity: 1,
+      });
+    });
+  }
+  layer.addTo(terrainLayer);
+}
+
+function terrainPopup(feature) {
+  const properties = feature.properties ?? {};
+  const swatch = typeof properties.surface === "string" ? surfacesById.get(properties.surface) : null;
+  const root = document.createElement("article");
+  root.className = "terrain-card";
+  if (properties.example) root.append(banner("banner-example", "Example. Not a survey."));
+  const title = document.createElement("h3");
+  title.textContent = properties.name ?? "Surveyed ground";
+  root.append(title);
+  const list = document.createElement("dl");
+  addRow(list, "Kind", kindLabel(properties.kind));
+  if (properties.surface) addRow(list, "Surface", swatch?.label ?? properties.surface);
+  addRow(list, "World", properties.world ?? "—");
+  addRow(list, "Notes", textOrDash(properties.notes));
+  root.append(list);
+  return root;
+}
+
+function kindLabel(kind) {
+  const labels = {
+    surface: "Surface",
+    lake: "Lake",
+    river: "River",
+    ridge: "Ridge",
+    outcrop: "Outcrop",
+  };
+  return labels[kind] ?? textOrDash(kind);
+}
+
+function createTerrainPanes(layerMap) {
+  layerMap.createPane("terrainFill");
+  layerMap.createPane("contour");
+  layerMap.createPane("terrainLine");
+  const fill = layerMap.getPane("terrainFill");
+  const contour = layerMap.getPane("contour");
+  const line = layerMap.getPane("terrainLine");
+  fill.style.zIndex = "340";
+  contour.style.zIndex = "360";
+  contour.style.pointerEvents = "none";
+  line.style.zIndex = "380";
+}
+
+function contourOverlay() {
+  const Layer = L.Layer.extend({
+    onAdd(layerMap) {
+      this._map = layerMap;
+      this._canvas = L.DomUtil.create("canvas", "contour-layer");
+      this._canvas.setAttribute("aria-hidden", "true");
+      layerMap.getPane("contour").appendChild(this._canvas);
+      this._draw = () => drawContours(layerMap, this._canvas);
+      redrawContours = () => this._draw();
+      layerMap.on("move zoom viewreset resize", this._draw);
+      this._draw();
+    },
+    onRemove(layerMap) {
+      layerMap.off("move zoom viewreset resize", this._draw);
+      this._canvas.remove();
+    },
+  });
+  return new Layer();
+}
+
+function drawContours(layerMap, canvas) {
+  const size = layerMap.getSize();
+  if (size.x < 2 || size.y < 2) return;
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  const topLeft = layerMap.containerPointToLayerPoint([0, 0]);
+  L.DomUtil.setPosition(canvas, topLeft);
+  canvas.width = Math.floor(size.x * ratio);
+  canvas.height = Math.floor(size.y * ratio);
+  canvas.style.width = `${size.x}px`;
+  canvas.style.height = `${size.y}px`;
+  const context = canvas.getContext("2d");
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  context.clearRect(0, 0, size.x, size.y);
+  if (mapView !== "topo") return;
+  const northWest = layerMap.containerPointToLatLng([0, 0]);
+  const southEast = layerMap.containerPointToLatLng([size.x, size.y]);
+  const bounds = {
+    xMin: Math.min(northWest.lng, southEast.lng),
+    xMax: Math.max(northWest.lng, southEast.lng),
+    yMin: Math.min(northWest.lat, southEast.lat),
+    yMax: Math.max(northWest.lat, southEast.lat),
+  };
+  const field = fieldForView(bounds, (x, y) => elevation(x, y));
+  const lines = contourGeometry(field);
+  const ring = cssHex("--topo-marker-ring", "#f4efe2");
+  const contour = cssHex("--topo-contour", "#4a2c16");
+  const index = cssHex("--topo-contour-index", "#2c1a0e");
+  context.lineJoin = "round";
+  context.lineCap = "round";
+  strokeContours(context, layerMap, lines.normal, ring, 1.7);
+  strokeContours(context, layerMap, lines.index, ring, 3.5);
+  strokeContours(context, layerMap, lines.normal, contour, 1.15);
+  strokeContours(context, layerMap, lines.index, index, 2.55);
+}
+
+function strokeContours(context, layerMap, segments, color, width) {
+  context.strokeStyle = color;
+  context.lineWidth = width;
+  context.beginPath();
+  for (const [x1, y1, x2, y2] of segments) {
+    const start = layerMap.latLngToContainerPoint(L.latLng(y1, x1));
+    const end = layerMap.latLngToContainerPoint(L.latLng(y2, x2));
+    context.moveTo(start.x, start.y);
+    context.lineTo(end.x, end.y);
+  }
+  context.stroke();
+}
+
+function drawMilitaryGrid(context, layerMap, size, xMin, xMax, yMin, yMax) {
+  const span = Math.max(xMax - xMin, yMax - yMin);
+  const { minor, major } = militarySteps(span);
+  if (!isFiniteNumber(minor) || minor <= 0) return;
+  updateSheetFacts(`${formatMeters(minor)} / ${formatMeters(major)}`);
+  const minorColor = cssHex("--topo-grid-minor", "#3f3c34");
+  const majorColor = cssHex("--topo-grid", "#1a1712");
+  context.lineCap = "butt";
+  context.font = '600 11px ui-monospace, "Cascadia Code", monospace';
+  context.textBaseline = "top";
+  strokeGridLines(context, layerMap, size, xMin, xMax, yMin, yMax, minor, major, false, minorColor);
+  strokeGridLines(context, layerMap, size, xMin, xMax, yMin, yMax, major, major, true, majorColor);
+}
+
+function strokeGridLines(context, layerMap, size, xMin, xMax, yMin, yMax, step, major, isMajor, color) {
+  context.strokeStyle = color;
+  context.fillStyle = color;
+  context.lineWidth = isMajor ? 1.6 : 1;
+  context.font = isMajor
+    ? '700 12px ui-monospace, "Cascadia Code", monospace'
+    : '600 11px ui-monospace, "Cascadia Code", monospace';
+  const minorPx = Math.abs(
+    layerMap.latLngToContainerPoint(L.latLng(0, step)).x -
+      layerMap.latLngToContainerPoint(L.latLng(0, 0)).x,
+  );
+  const labelMinors = isMajor || minorPx >= 52;
+  let guard = 0;
+  let lastTop = -Infinity;
+  for (let x = firstGridLine(xMin, step); x <= xMax + step * 0.001; x += step) {
+    if (++guard > 80) break;
+    const majorLine = isMajorLine(x, major);
+    if (!isMajor && majorLine) continue;
+    const start = layerMap.latLngToContainerPoint(L.latLng(yMax, x));
+    const end = layerMap.latLngToContainerPoint(L.latLng(yMin, x));
+    context.beginPath();
+    context.moveTo(start.x, start.y);
+    context.lineTo(end.x, end.y);
+    context.stroke();
+    if (!labelMinors || start.x < 8 || start.x > size.x - 8) continue;
+    if (!isMajor && start.x - lastTop < 48) continue;
+    const labelY = 5;
+    if (labelBlocked(start.x, labelY + 6)) continue;
+    context.fillText(formatMeters(Math.round(x / step) * step), start.x + 3, labelY);
+    lastTop = start.x;
+  }
+  guard = 0;
+  let lastLeft = -Infinity;
+  for (let y = firstGridLine(yMin, step); y <= yMax + step * 0.001; y += step) {
+    if (++guard > 80) break;
+    const majorLine = isMajorLine(y, major);
+    if (!isMajor && majorLine) continue;
+    const start = layerMap.latLngToContainerPoint(L.latLng(y, xMin));
+    const end = layerMap.latLngToContainerPoint(L.latLng(y, xMax));
+    context.beginPath();
+    context.moveTo(start.x, start.y);
+    context.lineTo(end.x, end.y);
+    context.stroke();
+    if (!labelMinors || start.y < 18 || start.y > size.y - 16) continue;
+    if (!isMajor && Math.abs(start.y - lastLeft) < 28) continue;
+    if (labelBlocked(10, start.y)) continue;
+    context.fillText(formatMeters(Math.round(y / step) * step), 6, start.y + 3);
+    lastLeft = start.y;
+  }
+}
+
+function firstGridLine(min, step) {
+  return Math.ceil(min / step - 1e-9) * step;
+}
+
+function isMajorLine(value, major) {
+  if (!isFiniteNumber(major) || major <= 0) return false;
+  const nearest = Math.round(value / major) * major;
+  return Math.abs(value - nearest) <= major * 1e-6;
+}
+
+function labelBlocked(x, y) {
+  const mapRect = map.getContainer().getBoundingClientRect();
+  const obstacles = [
+    document.querySelector(".leaflet-control-zoom"),
+    document.querySelector(".compass-rose"),
+    scaleBar.hidden ? null : scaleBar,
+    sheetCard.hidden ? null : sheetCard,
+  ];
+  for (const node of obstacles) {
+    if (!node) continue;
+    const rect = node.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) continue;
+    const left = rect.left - mapRect.left - 6;
+    const right = rect.right - mapRect.left + 6;
+    const top = rect.top - mapRect.top - 4;
+    const bottom = rect.bottom - mapRect.top + 4;
+    if (x >= left && x <= right && y >= top && y <= bottom) return true;
+  }
+  return false;
+}
+
+function drawScaleBar() {
+  if (!map || mapView !== "topo") return;
+  const origin = map.latLngToContainerPoint(L.latLng(0, 0));
+  const east = map.latLngToContainerPoint(L.latLng(0, 100));
+  const pxPerMeter = Math.abs(east.x - origin.x) / 100;
+  const spec = scaleSpec(pxPerMeter);
+  if (!spec || !isFiniteNumber(spec.px) || spec.px < 48) {
+    scaleBar.setAttribute("aria-label", "Scale bar unavailable at this zoom");
+    return;
+  }
+  const segmentPx = spec.px / spec.segments;
+  scaleRule.replaceChildren();
+  scaleRule.style.width = `${spec.px}px`;
+  for (let index = 0; index < spec.segments; index += 1) {
+    const block = document.createElement("span");
+    block.className = index % 2 === 0 ? "scale-seg dark" : "scale-seg light";
+    block.style.flex = "1 1 auto";
+    block.style.width = `${segmentPx}px`;
+    scaleRule.append(block);
+  }
+  scaleLabels.replaceChildren();
+  scaleLabels.style.width = `${spec.px}px`;
+  scaleLabels.append(
+    scaleLabel("0", 0),
+    scaleLabel(formatMeters(spec.meters / 2), 0.5),
+    scaleLabel(formatMeters(spec.meters), 1),
+  );
+  scaleBar.setAttribute("aria-label", `Scale bar, 0 to ${formatMeters(spec.meters)}`);
+}
+
+function scaleLabel(text, at) {
+  const node = document.createElement("span");
+  node.textContent = text;
+  node.style.left = `${at * 100}%`;
+  if (at === 0) node.style.transform = "translateX(0)";
+  else if (at === 1) node.style.transform = "translateX(-100%)";
+  else node.style.transform = "translateX(-50%)";
+  return node;
+}
+
+function cssHex(name, fallback) {
+  const value = getComputedStyle(mapFrame).getPropertyValue(name).trim();
+  return isHex(value) ? value : fallback;
+}
+
+function isHex(value) {
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
 }
