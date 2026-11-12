@@ -1,0 +1,147 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "eden-2026-11-12-v3ktr-first-spawn",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0, 0]
+      },
+      "properties": {
+        "id": "eden-2026-11-12-v3ktr-first-spawn",
+        "example": false,
+        "approximate": false,
+        "date_discovered": "2026-11-12",
+        "world": "Eden",
+        "world_unconfirmed": true,
+        "region": "V3KTR first spawn",
+        "origin": true,
+        "anchor": true,
+        "anchor_id": null,
+        "bearing_deg": null,
+        "distance_m": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "coordinates_raw": null,
+        "category": "spawns",
+        "subtype": "first spawn",
+        "quantity_notes": "Two travel pods, at least one fully dismantled. Mixed conifer and broadleaf forest. Tall gray rock spire. Snowy-peaked mountain. Boulders. Red-dotted berry-like bushes. No bearings yet. Eden display origin until the Eden Outpost is logged.",
+        "nav_markers": [
+          {
+            "name": "Elara",
+            "distance_m": 523,
+            "distance_raw": "523 m",
+            "bearing_deg": null
+          },
+          {
+            "name": "Starfall",
+            "distance_m": 164400,
+            "distance_raw": "164.4 km",
+            "bearing_deg": null
+          }
+        ],
+        "planet_sightings": null,
+        "source": "logs/2026-11-12.md"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "example-maren-camp",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100, 50]
+      },
+      "properties": {
+        "id": "example-maren-camp",
+        "example": true,
+        "approximate": false,
+        "date_discovered": null,
+        "world": "Maren",
+        "world_unconfirmed": false,
+        "region": "Example Camp",
+        "origin": false,
+        "anchor": true,
+        "anchor_id": null,
+        "bearing_deg": null,
+        "distance_m": null,
+        "x": 100,
+        "y": 50,
+        "z": null,
+        "coordinates_raw": null,
+        "category": "structures",
+        "subtype": "camp",
+        "quantity_notes": "EXAMPLE. Not a real sighting. A sample anchor with a stored display position.",
+        "nav_markers": [
+          {
+            "name": "Example Beacon",
+            "distance_m": 50,
+            "distance_raw": "50 m",
+            "bearing_deg": null
+          }
+        ],
+        "planet_sightings": null,
+        "source": "logs/YYYY-MM-DD.md"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "example-maren-vein",
+      "geometry": null,
+      "properties": {
+        "id": "example-maren-vein",
+        "example": true,
+        "approximate": false,
+        "date_discovered": null,
+        "world": "Maren",
+        "world_unconfirmed": false,
+        "region": "Example Vein",
+        "origin": false,
+        "anchor": false,
+        "anchor_id": "example-maren-camp",
+        "bearing_deg": 45,
+        "distance_m": 200,
+        "x": null,
+        "y": null,
+        "z": null,
+        "coordinates_raw": null,
+        "category": "ores",
+        "subtype": "iron ore",
+        "quantity_notes": "EXAMPLE. Not a real sighting. 200 m at bearing 45 from Example Camp. x and y are null so the map computes the display position.",
+        "nav_markers": null,
+        "planet_sightings": null,
+        "source": "logs/YYYY-MM-DD.md"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "example-maren-bush",
+      "geometry": null,
+      "properties": {
+        "id": "example-maren-bush",
+        "example": true,
+        "approximate": true,
+        "date_discovered": null,
+        "world": "Maren",
+        "world_unconfirmed": false,
+        "region": "Example Bush",
+        "origin": false,
+        "anchor": false,
+        "anchor_id": "example-maren-camp",
+        "bearing_deg": 200,
+        "distance_m": 80,
+        "x": null,
+        "y": null,
+        "z": null,
+        "coordinates_raw": null,
+        "category": "plants",
+        "subtype": "berry bush",
+        "quantity_notes": "EXAMPLE. Not a real sighting. An approximate fix, 80 m at bearing 200 from Example Camp.",
+        "nav_markers": null,
+        "planet_sightings": null,
+        "source": "logs/YYYY-MM-DD.md"
+      }
+    }
+  ]
+}

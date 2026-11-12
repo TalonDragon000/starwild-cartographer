@@ -8,6 +8,8 @@ Travel journal template. Copy this file to `logs/YYYY-MM-DD.md` with the real da
 
 ## Coordinates
 
+The game has no coordinates and no compass. Record an anchor, a bearing clockwise from this world's derived north, and a distance in meters. Append one feature to `data/locations.geojson`. Leave the bearing blank, and leave `bearing_deg` null, until north has been derived and a direction was actually taken. Nav markers and visible planets belong in that feature too.
+
 ## What was new
 
 ## Eden Outpost supply levels

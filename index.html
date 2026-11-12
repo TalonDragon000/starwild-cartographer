@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starwild Cartographer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23101816' stroke='%23ffd56a' stroke-width='2'/%3E%3Cpolygon points='16,4 19,16 16,14 13,16' fill='%23ffd56a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="css/map.css">
+</head>
+<body>
+  <a class="skip-link" href="#locations">Skip to location list</a>
+  <header class="site-header">
+    <p class="eyebrow">Starwild</p>
+    <h1>Cartographer</h1>
+    <p class="lede">Discovered places on the worlds around Varda. The game has no coordinates. Each world is drawn in meters, and north comes from the sun or the star on that world.</p>
+  </header>
+  <main>
+    <noscript>
+      <p class="error">The map needs JavaScript to load locations. The data file is <code>data/locations.geojson</code>.</p>
+    </noscript>
+    <p id="load-error" class="error" role="alert" hidden></p>
+    <div class="workspace">
+      <section class="panel" aria-labelledby="filters-heading">
+        <h2 id="filters-heading">Filters</h2>
+        <form id="filters">
+          <div class="field">
+            <label for="world">World</label>
+            <select id="world" name="world"></select>
+          </div>
+          <div class="field">
+            <label for="search">Search</label>
+            <input id="search" name="q" type="search" autocomplete="off" spellcheck="false" placeholder="Region, notes, nav marker">
+          </div>
+          <div class="field examples">
+            <div class="check-row">
+              <input id="show-examples" name="examples" type="checkbox" aria-describedby="examples-help">
+              <label for="show-examples">Show examples</label>
+            </div>
+            <p id="examples-help">Sample points on Maren: an anchor, a computed bearing, and an approximate fix. Hidden until this is checked. They are not survey records.</p>
+          </div>
+          <fieldset>
+            <legend>Categories</legend>
+            <p class="hint">Each category has its own shape and color. The count is places on this world that match the search, including categories you have turned off.</p>
+            <div class="category-actions">
+              <button type="button" id="categories-all">Select all</button>
+              <button type="button" id="categories-none">Clear</button>
+            </div>
+            <ul id="category-list" class="category-list"></ul>
+          </fieldset>
+        </form>
+        <p id="summary" class="status" role="status" aria-live="polite"></p>
+      </section>
+      <section class="map-column" aria-labelledby="map-heading">
+        <div class="map-heading-row">
+          <h2 id="map-heading">Map</h2>
+        </div>
+        <p id="north-note" class="hint"></p>
+        <div class="map-frame">
+          <div id="map"></div>
+          <div class="compass-rose" aria-hidden="true">
+            <span>N</span>
+            <svg viewBox="0 0 48 64" width="36" height="48">
+              <polygon points="24,4 32,36 24,30 16,36" fill="#ffd56a"></polygon>
+              <polygon points="24,60 32,36 24,42 16,36" fill="#8ea399"></polygon>
+            </svg>
+          </div>
+          <p id="cursor" class="hud cursor" aria-hidden="true"></p>
+          <p id="grid-step" class="hud grid-step" aria-hidden="true"></p>
+        </div>
+        <p id="map-empty" class="map-note" hidden></p>
+      </section>
+    </div>
+    <section class="list-section" aria-labelledby="list-heading">
+      <h2 id="list-heading">Locations</h2>
+      <div class="table-scroll" tabindex="0" aria-label="Location table, scrolls sideways">
+        <table id="locations">
+          <caption>Locations on the selected world</caption>
+          <thead>
+            <tr>
+              <th scope="col">Region</th>
+              <th scope="col">Category</th>
+              <th scope="col">Subtype</th>
+              <th scope="col">Placement</th>
+              <th scope="col">Nav markers</th>
+              <th scope="col">Notes</th>
+              <th scope="col">Planets</th>
+              <th scope="col">Discovered</th>
+              <th scope="col">World</th>
+              <th scope="col">Source</th>
+              <th scope="col">Id</th>
+              <th scope="col">Map</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <p>Display plane: east is +x and north is +y, in meters from that world's origin anchor. A bearing runs clockwise from display north. The formula is x = anchor east + distance × sin(bearing), y = anchor north + distance × cos(bearing). Stored x and y are optional. z is recorded and is not plotted. A nav marker stays a note until it is logged as its own place.</p>
+  </footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script type="module" src="js/map.js"></script>
+</body>
+</html>
