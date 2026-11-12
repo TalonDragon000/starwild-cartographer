@@ -2,7 +2,7 @@
 
 A cartographer's log for [Starwild](https://starwild.io). An AI companion bot plays daily and appends what it saw. The owner reads the log, corrects it, and adds anything the bot missed.
 
-The log is Markdown, a resource CSV, and a location GeoJSON file. A static map in this repository plots those locations on a compass we keep ourselves, because the game has no coordinates. There is no build step. Open a file in any editor, or view the map locally or on GitHub Pages.
+The log is Markdown, a resource CSV, a location GeoJSON file, and a hints file. A static site plots the locations and lists gameplay tips. There is no build step. Open a file in any editor, or view the site locally or on GitHub Pages.
 
 ## Purpose
 
@@ -16,11 +16,13 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/resources.csv` | Machine-readable resource sightings. One row per sighting. The map does not read this file. |
 | `data/locations.geojson` | Map locations. One GeoJSON feature per discovered place. |
 | `data/location-schema.json` | Worlds, compass status, categories, icon shapes, and colors. |
-| `index.html`, `css/`, `js/` | Static map. Leaflet is loaded from a CDN. `js/place.js` turns a bearing and a distance into a display position. |
+| `data/hints.json` | Gameplay tips. One object per tip. The hints page reads this file. |
+| `index.html`, `hints.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. |
 | `worlds/` | One Markdown file per known world, plus a template for a world that does not have a file yet. |
 | `logs/` | Travel journal. One Markdown file per day. |
 | `outpost/eden-outpost.md` | Supply crates at the owner's public outpost on Eden. |
 | `scripts/validate-locations.mjs` | Checks `data/locations.geojson` against the schema. |
+| `scripts/validate-hints.mjs` | Checks `data/hints.json` against the schema. |
 | `scripts/place.test.mjs` | Checks the bearing-to-position math. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
@@ -43,7 +45,7 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The page loads `data/locations.geojson` with `fetch`, so opening `index.html` as a file will not show locations. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, and an approximate fix.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations or hints. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, and an approximate fix. Helpful Hints is linked from the site navigation.
 
 ## Compass
 
@@ -82,6 +84,7 @@ Then run:
 
 ```sh
 node scripts/validate-locations.mjs
+node scripts/validate-hints.mjs
 node --test scripts/place.test.mjs
 ```
 
@@ -170,6 +173,32 @@ This is the shape of a new place that is not the origin. It is not itself a feat
 }
 ```
 
+## Helpful hints
+
+`data/hints.json` is a JSON array. Append one object when a session actually teaches a tip. Do not add a tip from guesswork. An unknown value is not used here: every field is required.
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Stable id. Non-empty, no whitespace, unique in the file. Suggested form: `first-flight-dismantle-pods`. |
+| `category` | A short group name, such as `Performance` or `Etiquette`. The page groups by this text. |
+| `tip` | The question or the short tip. |
+| `details` | The rest of the tip. Non-empty. |
+| `date_added` | The day the tip was added, `YYYY-MM-DD`. |
+| `source` | `owner` when the human reported it. `bot` when the companion learned it in play. |
+
+```json
+{
+  "id": "performance-refresh-tab",
+  "category": "Performance",
+  "tip": "If the game lags or glitches, refresh the tab.",
+  "details": "Shrinking the browser window also helped a lot.",
+  "date_added": "2026-11-12",
+  "source": "owner"
+}
+```
+
+The hints page has a search box and category checkboxes. It is `hints.html`.
+
 ## GitHub Pages
 
 `.github/workflows/pages.yml` deploys the repository on each push to `main`. GitHub still needs one setting, once, from a repository admin:
@@ -188,10 +217,11 @@ If the push to `main` happened before that source was selected, open the **Actio
 2. Fill that day's sections: where you went, what you gathered, coordinates, what was new, and the Eden Outpost supply levels. Leave a section empty when you do not know.
 3. For each resource actually seen, append one row to `data/resources.csv`. Leave `coordinates` empty when you do not have them. Set `source` to `bot` or `owner`.
 4. For each place that should appear on the map, append one feature to `data/locations.geojson` as described above. Set `source` to that day's log path.
-5. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
-6. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-7. Run `node scripts/validate-locations.mjs` and `node --test scripts/place.test.mjs`.
-8. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
+5. For each gameplay tip that was actually learned, append one object to `data/hints.json`.
+6. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
+7. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
+8. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, and `node --test scripts/place.test.mjs`.
+9. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.
 

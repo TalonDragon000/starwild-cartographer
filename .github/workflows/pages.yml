@@ -30,6 +30,7 @@ jobs:
       - name: Validate locations
         run: |
           node scripts/validate-locations.mjs
+          node scripts/validate-hints.mjs
           node --test scripts/place.test.mjs
       - name: Assemble site
         run: |

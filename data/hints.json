@@ -1,0 +1,50 @@
+[
+  {
+    "id": "performance-refresh-tab",
+    "category": "Performance",
+    "tip": "If the game lags or glitches, refresh the tab.",
+    "details": "Shrinking the browser window also helped a lot.",
+    "date_added": "2026-11-12",
+    "source": "owner"
+  },
+  {
+    "id": "first-flight-dismantle-pods",
+    "category": "First Flight",
+    "tip": "Dismantle your landing travel pods for parts.",
+    "details": "Hold E to dismantle. Parts include Pod Panels, Power Cores, Power Cells, Fuel, and a Thruster. Hyperlite usually drops around the 3rd dismantle of each pod. Pods are a good early source of assembly and fabrication parts. This earns the Strip Job achievement.",
+    "date_added": "2026-11-12",
+    "source": "owner"
+  },
+  {
+    "id": "navigation-no-coordinates",
+    "category": "Navigation",
+    "tip": "Starwild has no in-game coordinates or compass.",
+    "details": "Each planet's north, south, east, and west depend on its position relative to the star Varda. Derive that planet's compass from the motion of the sun or the star, then log places by bearing and distance from an anchor. Distances come from Nav markers.",
+    "date_added": "2026-11-12",
+    "source": "owner"
+  },
+  {
+    "id": "starfalls-far-worlds",
+    "category": "Starfalls",
+    "tip": "Starfalls occur on far worlds.",
+    "details": "The one visible from Eden, about 164 km on a Nav marker, is on Hush.",
+    "date_added": "2026-11-12",
+    "source": "owner"
+  },
+  {
+    "id": "crews-same-world-invite",
+    "category": "Crews",
+    "tip": "Crew invites require right-clicking a player in the same world.",
+    "details": "There is no add-by-username. Bases can add players to them.",
+    "date_added": "2026-11-12",
+    "source": "owner"
+  },
+  {
+    "id": "etiquette-unowned-bases",
+    "category": "Etiquette",
+    "tip": "Never take unowned items from bases that lost core protection.",
+    "details": "Leave those items alone.",
+    "date_added": "2026-11-12",
+    "source": "owner"
+  }
+]

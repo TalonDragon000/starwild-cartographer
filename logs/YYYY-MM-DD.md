@@ -12,6 +12,8 @@ The game has no coordinates and no compass. Record an anchor, a bearing clockwis
 
 ## What was new
 
+A gameplay tip that was actually learned also belongs in `data/hints.json`.
+
 ## Eden Outpost supply levels
 
 Goal: one maxed crate each of Hyperlite, power cores, and fuel. Blank cells are not yet recorded.
