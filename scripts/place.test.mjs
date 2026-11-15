@@ -118,11 +118,23 @@ test("distance labels keep survey precision", () => {
   assert.equal(formatEastNorth(-30, 75), "30 m west, 75 m north");
 });
 
+test("a place marked reanchor_pending is not plotted", () => {
+  const lair = point("lair", { origin: false, reanchor_pending: true, x: 0, y: 0 });
+  assert.equal(displayPosition(lair, index([lair])), null);
+});
+
 test("logged Eden anchor and Maren examples place as documented", () => {
   const collection = JSON.parse(readFileSync(join(root, "data/locations.geojson"), "utf8"));
   const byId = index(collection.features);
-  const base = displayPosition(byId.get("eden-2026-11-12-dragons-lair-base"), byId);
-  assert.deepEqual(base, { x: 0, y: 0, method: "origin" });
+  const outpost = displayPosition(byId.get("eden-2026-11-15-talons-public-outpost"), byId);
+  assert.deepEqual(outpost, { x: 0, y: 0, method: "origin" });
+
+  const base = byId.get("eden-2026-11-12-dragons-lair-base");
+  assert.equal(base.properties.origin, false);
+  assert.equal(base.properties.reanchor_pending, true);
+  assert.equal(base.properties.subtype, "base");
+  assert.equal(base.properties.x, null);
+  assert.equal(displayPosition(base, byId), null);
 
   const spawn = byId.get("eden-2026-11-12-v3ktr-first-spawn");
   assert.equal(spawn.properties.approximate, true);

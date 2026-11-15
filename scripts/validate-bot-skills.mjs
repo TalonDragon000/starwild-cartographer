@@ -5,6 +5,7 @@ import { parseFrontmatter } from "../js/markdown.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const indexPath = join(root, "data/bot-skills.json");
+const tutorialPath = join(root, "data/bot-tutorials.json");
 const categoryKeys = ["id", "name"];
 const skillKeys = [
   "id",
@@ -12,6 +13,7 @@ const skillKeys = [
   "description",
   "category",
   "tags",
+  "tutorial_id",
   "status",
   "date_added",
   "last_updated",
@@ -96,6 +98,22 @@ for (const [index, category] of (data?.categories ?? []).entries()) {
   }
 }
 
+let tutorialIds = new Set();
+try {
+  const tutorials = JSON.parse(readFileSync(tutorialPath, "utf8"));
+  if (!Array.isArray(tutorials?.tutorials)) {
+    fail("data/bot-tutorials.json", "expected a tutorials array");
+  } else {
+    tutorialIds = new Set(
+      tutorials.tutorials
+        .map((tutorial) => tutorial?.id)
+        .filter((id) => typeof id === "string"),
+    );
+  }
+} catch (error) {
+  fail("data/bot-tutorials.json", `could not be read: ${error.message}`);
+}
+
 const skillIds = new Set();
 for (const [index, skill] of (data?.skills ?? []).entries()) {
   const path = `skills[${index}]`;
@@ -143,6 +161,9 @@ for (const [index, skill] of (data?.skills ?? []).entries()) {
     }
   }
   if (!statuses.has(skill.status)) fail(`${path}.status`, "must be verified or draft");
+  if (skill.tutorial_id !== null && (typeof skill.tutorial_id !== "string" || !tutorialIds.has(skill.tutorial_id))) {
+    fail(`${path}.tutorial_id`, "must be null or an id from data/bot-tutorials.json");
+  }
 
   const addedOk = checkDate(`${path}.date_added`, skill.date_added);
   const updatedOk = checkDate(`${path}.last_updated`, skill.last_updated);

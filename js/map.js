@@ -1,3 +1,6 @@
+import { reanchorCopy } from "./anchor.js";
+import { compassPanelText, compassRose, compassSheetLabel, readCompass } from "./compass.js";
+import { communityVisible, mountCommunity, pointPopupRows } from "./contrib.js";
 import {
   displayPosition,
   formatEastNorth,
@@ -36,6 +39,8 @@ const examplesInput = document.querySelector("#show-examples");
 const categoryList = document.querySelector("#category-list");
 const summary = document.querySelector("#summary");
 const northNote = document.querySelector("#north-note");
+const reanchorNote = document.querySelector("#reanchor-note");
+const compassSvg = document.querySelector(".compass-rose svg");
 const mapHeading = document.querySelector("#map-heading");
 const mapEmpty = document.querySelector("#map-empty");
 const cursor = document.querySelector("#cursor");
@@ -68,6 +73,8 @@ let legendOpen = false;
 const markers = new Map();
 let schema = null;
 let features = [];
+let compass = readCompass(null);
+let community = null;
 let byId = new Map();
 let categoriesById = new Map();
 let positions = new Map();
@@ -108,6 +115,7 @@ if (map) {
   map.setView(L.latLng(0, 0), 0, { animate: false });
 }
 const markerLayer = map ? L.layerGroup().addTo(map) : null;
+const communityLayer = map ? L.layerGroup().addTo(map) : null;
 if (map) {
   createTerrainPanes(map);
   terrainLayer = L.featureGroup().addTo(map);
@@ -169,7 +177,7 @@ main();
 async function main() {
   try {
     const exploredPromise = refreshExplored();
-    const [loadedSchema, collection, terrainResult, paletteResult, exploredOk] = await Promise.all([
+    const [loadedSchema, collection, terrainResult, paletteResult, compassResult, exploredOk] = await Promise.all([
       fetchJson("data/location-schema.json"),
       fetchJson("data/locations.geojson"),
       fetchJson("data/terrain.geojson").then(
@@ -180,9 +188,14 @@ async function main() {
         (data) => ({ ok: true, data }),
         () => ({ ok: false, data: null }),
       ),
+      fetchJson("data/compass.json").then(
+        (data) => ({ ok: true, data }),
+        () => ({ ok: false, data: null }),
+      ),
       exploredPromise,
     ]);
     schema = loadedSchema;
+    compass = readCompass(compassResult.ok ? compassResult.data : null);
     categoriesById = new Map((schema.categories ?? []).map((category) => [category.id, category]));
     terrainCollection = terrainResult.ok ? terrainResult.data : null;
     if (paletteResult.ok) applyPalette(paletteResult.data);
@@ -211,8 +224,16 @@ async function main() {
     if (!exploredOk) {
       problems.push("Explored ground did not load. The topographic sheet stays fogged until data/explored.geojson can be read.");
     }
+    if (!compassResult.ok) {
+      problems.push("The compass file did not load. The rose stays uncalibrated.");
+    }
     if (problems.length > 0) showError(problems.join(" "));
     render();
+    community = await mountCommunity({
+      map,
+      onChange: () => render(),
+    });
+    if (community) render();
     startExploreWatch();
   } catch (error) {
     showError("The map could not load location data. Check data/locations.geojson and data/location-schema.json.");
@@ -294,7 +315,15 @@ function render() {
   mapHeading.textContent = `Map of ${world}`;
   mapFrame.setAttribute("aria-label", `Map of ${world}`);
   northNote.textContent = northCopy(world);
+  updateReanchorNote(world);
   updateSheetFacts();
+
+  const allCategories = new Set((schema.categories ?? []).map((category) => category.id));
+  const communityMatches = communityVisible(community?.getPoints() ?? [], {
+    world,
+    query,
+    categories: allCategories,
+  });
 
   for (const count of categoryList.querySelectorAll(".count")) {
     const category = count.dataset.category;
@@ -306,7 +335,8 @@ function render() {
         matchesQuery(feature, query)
       );
     }).length;
-    count.textContent = String(total);
+    const contributed = communityMatches.filter((item) => item.tag.category === category).length;
+    count.textContent = String(total + contributed);
   }
 
   const visible = features.filter((feature) => {
@@ -317,7 +347,11 @@ function render() {
     return matchesQuery(feature, query);
   });
 
-  if (map) drawMarkers(visible, northDerived);
+  const contributed = communityVisible(community?.getPoints() ?? [], { world, query, categories });
+  if (map) {
+    drawMarkers(visible, northDerived, { extra: contributed.map((item) => item.plot) });
+    drawCommunity(contributed);
+  }
   syncTerrain();
   drawTable(visible, world, query, northDerived);
   const plotted = visible.filter((feature) => positions.get(feature.id)).length;
@@ -327,9 +361,14 @@ function render() {
     unconfirmed > 0
       ? ` Planet not confirmed for ${unconfirmed} location${unconfirmed === 1 ? "" : "s"}.`
       : "";
-  summary.textContent = `Showing ${visible.length} location${visible.length === 1 ? "" : "s"} on ${world}. ${plotted} plotted. ${exampleNote}${planetNote}`;
-  mapEmpty.hidden = plotted > 0;
-  mapEmpty.textContent = plotted > 0 ? "" : `No plotted locations on ${world}.`;
+  const communityNote =
+    community?.configured && community.loaded && (community.getPoints()?.length ?? 0) > 0
+      ? ` ${contributed.length} community point${contributed.length === 1 ? "" : "s"} on the map.`
+      : "";
+  summary.textContent = `Showing ${visible.length} location${visible.length === 1 ? "" : "s"} on ${world}. ${plotted} plotted. ${exampleNote}${planetNote}${communityNote}`;
+  const anyPlotted = plotted > 0 || contributed.length > 0;
+  mapEmpty.hidden = anyPlotted;
+  mapEmpty.textContent = anyPlotted ? "" : `No plotted locations on ${world}.`;
   if (map) requestAnimationFrame(() => map.invalidateSize());
 }
 
@@ -405,7 +444,68 @@ function drawMarkers(visible, northDerived, options = {}) {
     markers.set(feature.id, marker);
     plotted.push(position);
   }
-  if (options.fit !== false) fitMap(plotted);
+  if (options.fit !== false) fitMap([...plotted, ...(options.extra ?? [])]);
+}
+
+function drawCommunity(plan) {
+  if (!communityLayer) return;
+  communityLayer.clearLayers();
+  for (const item of plan) {
+    const { point, plot, tag } = item;
+    const category = categoriesById.get(tag.category);
+    const name = typeof point.name === "string" && point.name.trim() !== "" ? point.name : "Community point";
+    const marker = L.marker(L.latLng(plot.y, plot.x), {
+      icon: L.divIcon({
+        className: plot.faded ? "map-pin is-faded" : "map-pin",
+        html: iconSvg(category?.shape, category?.color, { plate: mapView === "topo" }),
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -16],
+      }),
+      title: plot.labeled ? name : undefined,
+      alt: name,
+      keyboard: true,
+      zIndexOffset: plot.faded ? -20 : 0,
+    });
+    marker.bindPopup(communityPopup(point, tag, plot), {
+      maxWidth: 340,
+      minWidth: 220,
+      maxHeight: 280,
+    });
+    marker.on("add", () => {
+      const element = marker.getElement();
+      if (element) element.setAttribute("aria-label", name);
+    });
+    marker.addTo(communityLayer);
+  }
+}
+
+function communityPopup(point, tag, plot) {
+  const root = document.createElement("article");
+  root.className = "survey-card";
+  root.tabIndex = -1;
+  const title = document.createElement("h3");
+  title.textContent = typeof point.name === "string" && point.name.trim() !== "" ? point.name : "Community point";
+  root.append(title);
+  const list = document.createElement("dl");
+  for (const [term, value] of pointPopupRows(point, tag, plot)) addRow(list, term, value);
+  root.append(list);
+  return root;
+}
+
+function updateReanchorNote(world) {
+  if (!reanchorNote) return;
+  const pending = features.filter(
+    (feature) => feature.properties.world === world && feature.properties.reanchor_pending === true,
+  );
+  const exploredPending = (exploredCollection?.features ?? []).some((feature) => {
+    const properties = feature?.properties;
+    return properties?.world === world && properties?.reanchor_pending === true && properties?.example !== true;
+  });
+  const text = reanchorCopy(schema.origin_anchor?.[world], pending, exploredPending);
+  reanchorNote.hidden = text === "";
+  reanchorNote.textContent = text;
+  placePanelRails();
 }
 
 function fitMap(plotted) {
@@ -563,11 +663,9 @@ function navText(markersValue) {
 }
 
 function northCopy(world) {
-  const compass = schema.world_compass?.[world];
-  if (compass?.north_derived === true) {
-    return compass.north_note || `North on ${world} has been derived. Bearings are degrees clockwise from that north. Distances are meters.`;
-  }
-  return `North on ${world} is not derived yet. The arrow is display north. Bearings will be degrees clockwise from the sun or the star on this world. Distances are meters.`;
+  const record = schema.world_compass?.[world];
+  const derived = record?.north_derived === true;
+  return compassPanelText(compass, world, derived, derived ? record?.north_note : null);
 }
 
 function markerTitle(feature, category) {
@@ -913,6 +1011,7 @@ function measurePanelRails() {
 
 function onMapPanelKeydown(event) {
   if (event.key !== "Escape") return;
+  if (event.target instanceof Element && event.target.closest("#contrib-form")) return;
   const active = document.activeElement;
   if (!infoPanel.hidden && infoPanel.contains(active)) {
     event.preventDefault();
@@ -1009,12 +1108,14 @@ function northIsDerived(world) {
 
 function updateSheetFacts(gridText) {
   const world = worldSelect.value;
-  const northDerived = northIsDerived(world);
   sheetWorld.textContent = world || "—";
-  sheetNorth.textContent = northDerived ? "Derived" : "Provisional";
+  sheetNorth.textContent = compassSheetLabel(compass);
   if (gridText) sheetGrid.textContent = gridText;
-  const provisional = mapView === "topo" && !northDerived;
-  compassLabel.textContent = provisional ? "N (provisional)" : "N";
+  const rose = compassRose(compass);
+  compassLabel.textContent = rose.label;
+  if (compassSvg) {
+    compassSvg.style.transform = rose.rotateDeg === null ? "" : `rotate(${rose.rotateDeg}deg)`;
+  }
   updateExploreChrome();
 }
 
@@ -1087,7 +1188,9 @@ function restyleMarkers() {
     if (!categories.has(properties.category)) return false;
     return matchesQuery(feature, query);
   });
+  const contributed = communityVisible(community?.getPoints() ?? [], { world, query, categories });
   drawMarkers(visible, northDerived, { fit: false });
+  drawCommunity(contributed);
 }
 
 function syncTerrain() {

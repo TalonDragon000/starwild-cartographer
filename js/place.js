@@ -29,6 +29,7 @@ export function displayPosition(feature, byId, trail = new Set()) {
 
   trail.add(id);
   try {
+    if (properties.reanchor_pending === true) return null;
     if (properties.origin === true) {
       return { x: 0, y: 0, method: "origin" };
     }

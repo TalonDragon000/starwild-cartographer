@@ -32,6 +32,7 @@
       <a href="index.html" aria-current="page">Map</a>
       <a href="hints.html">Helpful Hints</a>
       <a href="skills.html">Bot Skills</a>
+      <a href="tutorials.html">Bot Tutorials</a>
     </nav>
     <p class="eyebrow">Starwild</p>
     <h1>Cartographer</h1>
@@ -71,6 +72,44 @@
             <ul id="category-list" class="category-list"></ul>
           </fieldset>
         </form>
+        <section id="contrib" class="contrib" hidden aria-labelledby="contrib-heading">
+          <h3 id="contrib-heading">Community</h3>
+          <div id="contrib-signed-out">
+            <div class="field">
+              <label for="contrib-email">Email</label>
+              <input id="contrib-email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" spellcheck="false">
+            </div>
+            <button type="button" id="contrib-sign-in">Email me a sign-in link</button>
+            <p id="contrib-auth-status" class="hint" role="status"></p>
+          </div>
+          <div id="contrib-signed-in" hidden>
+            <p id="contrib-user" class="hint"></p>
+            <div class="category-actions">
+              <button type="button" id="contrib-add" aria-pressed="false">Add point</button>
+              <button type="button" id="contrib-sign-out">Sign out</button>
+            </div>
+            <div id="contrib-form" hidden>
+              <p id="contrib-place" class="hint"></p>
+              <div class="field">
+                <label for="contrib-tag">Tag</label>
+                <select id="contrib-tag"></select>
+              </div>
+              <div class="field">
+                <label for="contrib-name">Name</label>
+                <input id="contrib-name" type="text" maxlength="120" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="field">
+                <label for="contrib-note">Note <span class="hint-inline">(optional)</span></label>
+                <textarea id="contrib-note" rows="3" maxlength="2000"></textarea>
+              </div>
+              <div class="category-actions">
+                <button type="button" id="contrib-submit">Submit point</button>
+                <button type="button" id="contrib-cancel">Cancel</button>
+              </div>
+            </div>
+            <p id="contrib-form-status" class="hint" role="status"></p>
+          </div>
+        </section>
         <p id="summary" class="status" role="status" aria-live="polite"></p>
       </section>
       <section class="map-column" aria-labelledby="map-heading">
@@ -103,6 +142,7 @@
             <div class="map-panel-rail" data-panel="legend-panel" hidden aria-hidden="true"><span></span></div>
             <div id="map-info-panel" class="map-corner-panel" role="region" aria-label="Map info" tabindex="-1" hidden>
               <p id="north-note" class="map-info-note"></p>
+              <p id="reanchor-note" class="map-info-note" hidden></p>
               <aside id="sheet-card" class="sheet-card" hidden aria-label="Topographic sheet">
                 <p class="sheet-kicker">Field sheet</p>
                 <p id="sheet-world" class="sheet-world">—</p>
@@ -134,7 +174,7 @@
             </div>
           </div>
           <div class="compass-rose" aria-hidden="true">
-            <span id="compass-label">N</span>
+            <span id="compass-label"></span>
             <svg viewBox="0 0 48 64" width="36" height="48">
               <polygon points="24,4 32,36 24,30 16,36" fill="#ffcc66"></polygon>
               <polygon points="24,60 32,36 24,42 16,36" fill="#5eead4"></polygon>

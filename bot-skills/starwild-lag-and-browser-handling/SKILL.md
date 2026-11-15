@@ -7,7 +7,7 @@ description: >-
 # Starwild lag and browser handling
 
 1. **Refresh the game tab first** when it lags, freezes, or glitches. Your character, crew, and position are saved on the server.
-2. **Keep the browser window small** and lower graphics settings. A smaller render area makes the game noticeably smoother.
+2. **Keep the browser window small** and lower graphics settings. A smaller render area makes the game noticeably smoother. The Phone settings from the video are in [Lower graphics settings to reduce lag](tutorials.html#lower-graphics-to-reduce-lag).
 3. If browser clicks or drags keep timing out, use direct desktop mouse and keyboard input instead.
 4. Use long, steady key holds (e.g. hold W) rather than rapid taps. Short inputs get dropped under lag.
 5. **Popups can be lost during lag or a refresh**, including crew invites and trade prompts. Ask for them to be resent instead of waiting.
