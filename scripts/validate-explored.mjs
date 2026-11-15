@@ -8,7 +8,7 @@ const explored = JSON.parse(readFileSync(join(root, "data/explored.geojson"), "u
 
 const worlds = new Set(locationSchema.worlds);
 const collectionKeys = ["type", "features", "description", "default_radius_m", "updated"];
-const propertyKeys = ["id", "example", "world", "radius_m", "date", "source", "notes"];
+const propertyKeys = ["id", "example", "world", "radius_m", "date", "source", "notes", "reanchor_pending"];
 const geometryTypes = new Set([
   "Point",
   "MultiPoint",
@@ -188,6 +188,14 @@ if (!sameKeys("data/explored.geojson", explored, collectionKeys)) {
       }
       if (feature.id !== properties.id) fail(`${path}.id`, "feature id must match properties.id");
       if (typeof properties.example !== "boolean") fail(`${path}.properties.example`, "must be true or false");
+      if (typeof properties.reanchor_pending !== "boolean") {
+        fail(`${path}.properties.reanchor_pending`, "must be true or false");
+      }
+      if (properties.reanchor_pending === true) {
+        if (typeof properties.notes !== "string" || !/not drawn/i.test(properties.notes)) {
+          fail(`${path}.properties.notes`, "a pending track must say that it is not drawn");
+        }
+      }
       if (!worlds.has(properties.world)) {
         fail(`${path}.properties.world`, `must be one of ${[...worlds].join(", ")}`);
       }

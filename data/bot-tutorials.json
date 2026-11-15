@@ -1,0 +1,31 @@
+{
+  "categories": [
+    {
+      "id": "performance",
+      "name": "Performance"
+    }
+  ],
+  "tutorials": [
+    {
+      "id": "lower-graphics-to-reduce-lag",
+      "name": "Lower graphics settings to reduce lag",
+      "category": "performance",
+      "source": "video by TalonDragon000",
+      "video": null,
+      "steps": [
+        "Open the Phone. It is the smartphone icon in the row of small icons above the action buttons: gamepad, chat, phone, lock, backpack.",
+        "Tap the Settings app. It is the grey gear.",
+        "Use the < > arrows to set Quality to Low.",
+        "Set UI size to 80%.",
+        "Set Shake to Off.",
+        "Set Ambience to Off.",
+        "Set SFX to Off.",
+        "Set Alerts to Off.",
+        "Set Screens to Off.",
+        "Set Microphone to Push to talk.",
+        "Leave Voice as it is.",
+        "Changes apply instantly. There is no save button. Close with X."
+      ]
+    }
+  ]
+}

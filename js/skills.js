@@ -139,7 +139,8 @@ function usableSkill(skill, knownCategories) {
     Array.isArray(skill.tags) &&
     (skill.status === "verified" || skill.status === "draft") &&
     typeof skill.source_path === "string" &&
-    skill.source_path.trim() !== ""
+    skill.source_path.trim() !== "" &&
+    (skill.tutorial_id === null || (typeof skill.tutorial_id === "string" && skill.tutorial_id.trim() !== ""))
   );
 }
 
@@ -367,6 +368,16 @@ function skillCard(skill) {
   const added = textOrDash(skill.date_added);
   meta.textContent = `Updated ${updated}. Added ${added}.`;
   summaryEl.append(meta);
+  if (typeof skill.tutorial_id === "string" && skill.tutorial_id.trim() !== "") {
+    const tutorial = document.createElement("p");
+    tutorial.className = "meta";
+    const tutorialLink = document.createElement("a");
+    tutorialLink.href = `tutorials.html#${encodeURIComponent(skill.tutorial_id)}`;
+    tutorialLink.textContent = "Related tutorial";
+    tutorialLink.addEventListener("click", (event) => event.stopPropagation());
+    tutorial.append(tutorialLink);
+    summaryEl.append(tutorial);
+  }
 
   const toggle = document.createElement("span");
   toggle.className = "toggle-label";

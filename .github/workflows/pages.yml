@@ -32,9 +32,12 @@ jobs:
           node scripts/validate-locations.mjs
           node scripts/validate-hints.mjs
           node scripts/validate-bot-skills.mjs
+          node scripts/validate-bot-tutorials.mjs
           node scripts/validate-terrain.mjs
           node scripts/validate-explored.mjs
-          node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs
+          node scripts/validate-compass.mjs
+          node scripts/validate-points-sql.mjs
+          node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs
       - name: Assemble site
         run: |
           mkdir -p _site

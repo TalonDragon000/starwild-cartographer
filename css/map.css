@@ -255,6 +255,9 @@ legend { display: block; margin-bottom: 0.3rem; }
 
 select,
 input[type="search"],
+input[type="email"],
+input[type="text"],
+textarea,
 button {
   font: inherit;
   color: var(--text);
@@ -265,11 +268,45 @@ button {
 }
 
 select,
-input[type="search"] { width: 100%; padding: 0.4rem 0.65rem; }
+input[type="search"],
+input[type="email"],
+input[type="text"],
+textarea { width: 100%; padding: 0.4rem 0.65rem; }
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+  line-height: 1.5;
+}
 
 button { padding: 0.4rem 0.75rem; cursor: pointer; }
 
-button:hover, select:hover, input[type="search"]:hover { background: #12303a; }
+button:hover, select:hover, input[type="search"]:hover, input[type="email"]:hover, input[type="text"]:hover, textarea:hover { background: #12303a; }
+
+.contrib { margin: 0.9rem 0 0; padding-top: 0.15rem; }
+
+.contrib[hidden] { display: none !important; }
+
+.contrib h3 {
+  margin: 0 0 0.55rem;
+  color: var(--gold);
+  font-family: Orbitron, "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.contrib .hint-inline { font-weight: 500; color: var(--muted); }
+
+.contrib button[aria-pressed="true"] {
+  background: var(--gold);
+  color: #1a1712;
+  border-color: var(--gold);
+}
+
+.map-frame.is-adding .leaflet-container { cursor: crosshair; }
+
+.map-pin.is-faded { opacity: 0.45; }
 
 .examples .check-row {
   display: flex;
@@ -350,6 +387,10 @@ fieldset {
   pointer-events: none;
   text-shadow: 0 1px 2px #101816;
 }
+
+.compass-rose span:empty { display: none; }
+
+.compass-rose svg { transform-origin: 50% 42%; }
 
 .hud {
   position: absolute;
@@ -554,6 +595,8 @@ html[data-view="topo"] #map,
 
 .map-corner-panel.is-covered { visibility: hidden; }
 
+#reanchor-note:not([hidden]) { margin-top: 0.7rem; }
+
 .map-info-note,
 .map-corner-panel .map-note,
 .map-corner-panel .surface-panel-note {
@@ -725,6 +768,8 @@ html[data-view="topo"] #map,
   max-width: 6.6rem;
   line-height: 1.25;
 }
+
+.map-frame.view-topo .compass-rose span:empty { display: none; }
 
 .map-frame.view-topo .compass-rose polygon:first-child { fill: var(--topo-ink); }
 .map-frame.view-topo .compass-rose polygon:last-child { fill: #5c5344; }

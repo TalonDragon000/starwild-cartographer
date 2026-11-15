@@ -12,9 +12,11 @@ North is not derived yet. When it is, it will come from the motion of the sun or
 
 ## Points of interest
 
-Dragons Lair Base, logged 2026-11-12. TalonDragon000's base. Torch. Outdoor machines under a wooden overhang. Nav showed Power 1d 8h. This base is the display origin for now. The owner may later designate the Eden Outpost instead. To change the origin, set `origin` false here and true on the new place, stored at x 0, y 0.
+Talon's Public Outpost is the Eden display origin, at 0 m east and 0 m north. The offset from Dragons Lair Base has not been measured.
 
-V3KTR first spawn, the same day. About 276 m from Dragons Lair Base. Bearing unknown, so it is not plotted. Two stripped travel pods. A Workbench. Mixed conifer and broadleaf forest. Tall gray rock spire. Snowy-peaked mountain. Red-dotted berry-like bushes. Nav marker Elara, about 523 m from the spawn. Bearing unknown.
+Dragons Lair Base, logged 2026-11-12. TalonDragon000's base. Torch. Outdoor machines under a wooden overhang. Nav showed Power 1d 8h. It is a base, not the display origin. It is not plotted until that offset is measured.
+
+V3KTR first spawn, the same day. About 276 m from Dragons Lair Base. Bearing unknown, so it is not plotted. It was logged from the Lair, so it waits on the same offset. Two stripped travel pods. A Workbench. Mixed conifer and broadleaf forest. Tall gray rock spire. Snowy-peaked mountain. Red-dotted berry-like bushes. Nav marker Elara, about 523 m from the spawn. Bearing unknown.
 
 Seen on the route between the base and the spawn, approximate and not placed: pine and birch woodland, ore-looking rocks, and a large stacked rock outcrop. No bearings and no distances.
 
