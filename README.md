@@ -23,7 +23,7 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/bot-skills.json` | Bot skill index: categories and one object per skill. The skills page reads this file. |
 | `data/bot-tutorials.json` | Bot tutorial index: categories and one object per tutorial. The tutorials page reads this file. |
 | `data/compass.json` | Compass rose calibration. `calibrated` stays false and `north_offset_deg` stays null until it is measured in game. |
-| `js/config.js` | Supabase URL and public anon key. Both stay empty until community points are turned on. |
+| `js/config.js` | Public Supabase URL and anon key for the live project. Clearing both strings turns community points off. |
 | `supabase/migrations/0001_points.sql` | `points` and `landmark_sightings` tables, with row-level security. Applied in Supabase, not by the static site. |
 | `index.html`, `hints.html`, `skills.html`, `tutorials.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. Community sign-in loads `supabase-js` from a CDN only when `js/config.js` is filled in. |
 | `worlds/` | One Markdown file per known world, plus a template for a world that does not have a file yet. |
@@ -67,7 +67,7 @@ Open <http://localhost:8080/>.
 
 The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, skills, or tutorials. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. Helpful Hints, Bot Skills, and Bot Tutorials are linked from the site navigation. Bot Skills is `skills.html`. Bot Tutorials is `tutorials.html`.
 
-With the empty placeholders in `js/config.js`, the map is the static survey only. The community sign-in block stays hidden, and the page does not request Supabase.
+`js/config.js` ships with the public Supabase URL and anon key, so the community sign-in block is on. Magic links return to <https://talondragon000.github.io/starwild-cartographer/>. Clearing both strings in that file hides the block, and the page does not request Supabase.
 
 The map has two views. **Simple** is the default dark survey plot. **Topographic** is the flat field sheet described below. The choice is stored in this browser. A link can force it with `?view=simple` or `?view=topo`.
 
@@ -336,16 +336,13 @@ The skills page searches the name, description, tags, and body. Filters and sort
 
 ## Community points
 
-Community points are optional. Leave `supabaseUrl` and `supabaseAnonKey` empty in `js/config.js` and the site keeps using only the static files. The sign-in block stays hidden.
+`js/config.js` holds the live project's public URL and anon-role key. Both are meant to ship in the client. The service role key stays out of this file. Clear `supabaseUrl` and `supabaseAnonKey` to hide the sign-in block and skip Supabase.
 
-To turn them on:
+The database is the Bolt-hosted project. `supabase/migrations/0001_points.sql` creates `public.points` and `public.landmark_sightings`, enables row-level security, and revokes the default grants before it grants back the ones the site uses.
 
-1. Create a Supabase project.
-2. Open the SQL editor and run `supabase/migrations/0001_points.sql`. The file creates `public.points` and `public.landmark_sightings`, enables row-level security, and revokes the default grants before it grants back the ones the site uses.
-3. In Authentication, keep email sign-in on. Magic links are the default for `signInWithOtp`. The site uses the implicit flow, so the default magic-link email template works. A signed-in visitor is created on the first link unless you later set `shouldCreateUser` to false.
-4. Under Authentication → URL configuration, set the Site URL to `https://talondragon000.github.io/starwild-cartographer/`. Add redirect URLs for that site and for local viewing, including `http://localhost:8080/` and `http://localhost:8080/index.html`. The redirect has to match the page the visitor is on.
-5. Copy the project URL and the public anon key, or the publishable key, into `js/config.js`. Never put the service role key or the secret key in that file. The anon key is public. The service role bypasses row-level security and stays off the site.
-6. Serve the site with `python3 -m http.server 8080` and open the map. The Community block asks for an email and sends a magic link. After the visitor returns, **Add point** waits for a map click, then a tag, a name, and an optional note. The point is saved for the world selected in the filter, stored as a lowercase planet id (`Eden` is `eden`). It shows on the map immediately.
+Magic-link sign-in uses `signInWithOtp` and the implicit flow, so the default magic-link email template works. `emailRedirectTo` is `https://talondragon000.github.io/starwild-cartographer/`. In Supabase Auth, the Site URL and the Redirect URLs list must include that address. A redirect that is missing from the list is rejected. A signed-in visitor is created on the first link unless you later set `shouldCreateUser` to false.
+
+Serve the site with `python3 -m http.server 8080` and open the map. The Community block asks for an email and sends a magic link. The link opens the GitHub Pages map. After the visitor returns, **Add point** waits for a map click, then a tag, a name, and an optional note. The point is saved for the world selected in the filter, stored as a lowercase planet id (`Eden` is `eden`). It shows on the map immediately.
 
 `points` columns: `id`, `created_at`, `created_by`, `tag`, `name`, `note`, `x`, `y`, `planet`, `status`, `verified_x`, `verified_y`, `verified_at`. `x` is east and `y` is north, in meters from that world's 0,0 anchor. `tag` is one of `poi`, `resource`, `base`, `crash_site`, `creature`, `plant`, `structure`, `landmark`, `other`. `planet` defaults to `eden`. `status` defaults to `unverified`.
 

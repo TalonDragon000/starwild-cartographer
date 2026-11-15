@@ -91,7 +91,7 @@ const SUPABASE_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0
 export async function mountCommunity({ map, onChange } = {}) {
   const root = document.querySelector("#contrib");
   if (!root) return null;
-  const { contribConfigured, supabaseAnonKey, supabaseUrl } = await import("./config.js");
+  const { contribConfigured, magicLinkRedirect, supabaseAnonKey, supabaseUrl } = await import("./config.js");
   if (!contribConfigured(supabaseUrl, supabaseAnonKey)) {
     root.hidden = true;
     return null;
@@ -247,11 +247,9 @@ export async function mountCommunity({ map, onChange } = {}) {
       return;
     }
     signInButton.disabled = true;
-    const redirect = new URL(location.href);
-    redirect.hash = "";
     const { error } = await client.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirect.toString() },
+      options: { emailRedirectTo: magicLinkRedirect },
     });
     signInButton.disabled = false;
     if (error) {

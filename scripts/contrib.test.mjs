@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { reanchorCopy } from "../js/anchor.js";
 import { compassPanelText, compassRose, compassSheetLabel, readCompass } from "../js/compass.js";
-import { contribConfigured, supabaseAnonKey, supabaseUrl } from "../js/config.js";
+import { contribConfigured, magicLinkRedirect, supabaseAnonKey, supabaseUrl } from "../js/config.js";
 import {
   POINT_TAGS,
   communityVisible,
@@ -11,11 +11,14 @@ import {
   pointPopupRows,
 } from "../js/contrib.js";
 
-test("community features stay off until both settings are filled in", () => {
-  assert.equal(supabaseUrl, "");
-  assert.equal(supabaseAnonKey, "");
-  assert.equal(contribConfigured(), false);
-  assert.equal(contribConfigured(" https://example.supabase.co ", "anon"), true);
+test("the shipped config is the public anon key and the pages redirect", () => {
+  assert.equal(supabaseUrl, "https://avwbewbeyklpysfndxub.supabase.co");
+  assert.equal(magicLinkRedirect, "https://talondragon000.github.io/starwild-cartographer/");
+  const payload = JSON.parse(Buffer.from(supabaseAnonKey.split(".")[1], "base64url").toString());
+  assert.equal(payload.role, "anon");
+  assert.equal(payload.ref, "avwbewbeyklpysfndxub");
+  assert.equal(contribConfigured(), true);
+  assert.equal(contribConfigured("", ""), false);
   assert.equal(contribConfigured("https://example.supabase.co", "  "), false);
 });
 
