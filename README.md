@@ -171,7 +171,7 @@ node scripts/validate-explored.mjs
 
 The plate measures east and north from Talon's Public Outpost. This site's Eden origin is still Dragons Lair Base at (0, 0). The plate is shifted so the Lair on the image sits on that origin: display east = plate east, and display north = plate north − 2936.2 m. 2936.2 m is the fitted Outpost-to-Lair distance. On the plate the Lair is due north of the Outpost.
 
-Heights on the plate are hover-survey estimates: elevation = 58 m minus the hover reading, and the Outpost is the 0 m datum. Positions are trilaterated from in-game Nav distances. North is a convention, the bearing from the Outpost to Dragon's Lair, because the game has no compass. `north_derived` for Eden stays false.
+Heights on the plate are hover-survey estimates: elevation = 58 m minus the hover reading, and the Outpost is the 0 m datum. Positions are trilaterated from in-game Nav distances. North is a convention, the bearing from the Outpost to Dragon's Lair, because the game has no compass. `north_derived` for Eden stays false. Looking south from the Lair, Copper is to the right of the Outpost, so Copper is west of the Outpost-to-Lair line, WNW of the Outpost. Water on the plate is northwest of the Lair.
 
 Talon's Public Outpost and Talon's Copper Site are locations with `approximate` set to true. Elara and Talon's Silica Site are in the file without a display position, because the bearing is unknown. Dragon's Lair is the existing origin and is not entered again. The plate's interpolated Lair height is not written onto that feature.
 

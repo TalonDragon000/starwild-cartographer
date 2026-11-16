@@ -193,7 +193,7 @@
       "id": "eden-2026-11-16-talons-copper-site",
       "geometry": {
         "type": "Point",
-        "coordinates": [2995.4, -1125.8, 14]
+        "coordinates": [-2995.4, -1125.8, 14]
       },
       "properties": {
         "id": "eden-2026-11-16-talons-copper-site",
@@ -208,13 +208,13 @@
         "anchor_id": "eden-2026-11-12-dragons-lair-base",
         "bearing_deg": null,
         "distance_m": 3200,
-        "x": 2995.4,
+        "x": -2995.4,
         "y": -1125.8,
         "z": 14,
-        "coordinates_raw": "Estimate. Nav about 3.5 km from Talon's Public Outpost and about 3.2 km from Dragon's Lair. East of the Outpost-to-Lair line. Plate position east 2995.4 m, north 1810.4 m.",
+        "coordinates_raw": "Estimate. Nav about 3.5 km from Talon's Public Outpost and about 3.2 km from Dragon's Lair. West of the Outpost-to-Lair line. Plate position east -2995.4 m, north 1810.4 m.",
         "category": "ores",
         "subtype": "copper",
-        "quantity_notes": "Estimate (unverified). Placed from the Outpost, Lair, and Copper Nav triangle, east of the Outpost-to-Lair line. Estimated elevation +14 m from a hover reading of 44 m. Medium confidence.",
+        "quantity_notes": "Estimate (unverified). Placed from the Outpost, Lair, and Copper Nav triangle. Looking south from the Lair, Copper is to the right of the Outpost, so it is west of the Outpost-to-Lair line: WNW of the Outpost and WSW of the Lair. Water on the plate is northwest of the Lair. Estimated elevation +14 m from a hover reading of 44 m. Medium confidence.",
         "nav_markers": null,
         "planet_sightings": null,
         "source": "logs/2026-11-16.md"

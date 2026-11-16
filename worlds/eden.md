@@ -24,6 +24,6 @@ Estimate (unverified), logged 2026-11-16. A relief plate for this area is `data/
 
 The plate's method: hover-survey heights, elevation = 58 m minus the hover reading, with Talon's Public Outpost as the 0 m datum; positions trilaterated from in-game Nav distances; north is the Outpost-to-Lair line, because the game has no compass. The plate measures from the Outpost. Display metres use Dragons Lair Base as (0, 0), so display north = plate north − 2936.2 m.
 
-Talon's Public Outpost is plotted 2936.2 m south of the Lair on that convention, at elevation 0 m. Talon's Copper Site is plotted east of that line, about 3.2 km from the Lair, at an estimated elevation of +14 m. Elara (about 460 m from the Lair area) and Talon's Silica Site (about 2.7 km and about 2.9 km, no bearing) are noted and not placed. The Lair's interpolated height on the plate is not written onto the origin feature.
+Talon's Public Outpost is plotted 2936.2 m south of the Lair on that convention, at elevation 0 m. Talon's Copper Site is plotted west of that line, WNW of the Outpost and WSW of the Lair, about 3.2 km from the Lair, at an estimated elevation of +14 m. Water on the plate is northwest of the Lair. The user confirmed that side by looking south from the Lair, where Copper is to the right of the Outpost. Elara (about 460 m from the Lair area) and Talon's Silica Site (about 2.7 km and about 2.9 km, no bearing) are noted and not placed. The Lair's interpolated height on the plate is not written onto the origin feature.
 
 ## Hazards

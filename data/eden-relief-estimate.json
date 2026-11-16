@@ -8,9 +8,9 @@
   "calibration": {
     "svgWidth": 806.4,
     "svgHeight": 720,
-    "eastZeroSvgX": 240.887719,
+    "eastZeroSvgX": 412.762901,
     "northZeroSvgY": 466.676343,
-    "eastTickSvgX": 304.545194,
+    "eastTickSvgX": 476.420375,
     "metersPerTick": 1000,
     "lairNorthM": 2936.2,
     "note": "eastZeroSvgX is the plate's 0 m east tick. eastTickSvgX is the 1000 m east tick. North uses the same metres-per-pixel scale. lairNorthM is Dragon's Lair on the plate, due north of the Outpost. Display metres subtract that northing so the Lair stays at the Eden origin."
