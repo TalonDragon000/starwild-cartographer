@@ -105,8 +105,9 @@ test("Dragons Lair Base is revealed on Eden and the default radius applies", () 
   assert.equal(entries[0].feature.properties.example, false);
   assert.equal(entries[0].radius, 40);
   const shapes = revealShapes(entries);
-  assert.equal(pointRevealed(0, 0, shapes), true);
-  assert.equal(pointRevealed(400, 0, shapes), false);
+  assert.equal(pointRevealed(0, 2800, shapes), true);
+  assert.equal(pointRevealed(0, 0, shapes), false);
+  assert.equal(pointRevealed(400, 2800, shapes), false);
   assert.equal(exploredFeatures(explored, "Hush", true).length, 0);
 });
 

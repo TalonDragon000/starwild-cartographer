@@ -121,8 +121,12 @@ test("distance labels keep survey precision", () => {
 test("logged Eden anchor and Maren examples place as documented", () => {
   const collection = JSON.parse(readFileSync(join(root, "data/locations.geojson"), "utf8"));
   const byId = index(collection.features);
+  const outpost = displayPosition(byId.get("eden-2026-11-16-talons-public-outpost"), byId);
+  assert.deepEqual(outpost, { x: 0, y: 0, method: "origin" });
   const base = displayPosition(byId.get("eden-2026-11-12-dragons-lair-base"), byId);
-  assert.deepEqual(base, { x: 0, y: 0, method: "origin" });
+  assert.equal(base.method, "stored");
+  assert.equal(base.x, 0);
+  assert.equal(base.y, 2800);
 
   const spawn = byId.get("eden-2026-11-12-v3ktr-first-spawn");
   assert.equal(spawn.properties.approximate, true);

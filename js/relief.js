@@ -1,20 +1,16 @@
 /** Georeference for the Eden relief estimate.
 
-The plate measures metres from Talon's Public Outpost. East is +x and north is +y
-on the plate. This site's Eden display plane uses Dragons Lair Base as (0, 0),
-with the same axis directions. The Lair sits due north of the Outpost on the plate,
-so a plate position becomes a display position by subtracting that northing:
+The plate and the Eden display plane both use Talon's Public Outpost as (0, 0).
+East is +x and north is +y. A plate position is already a display position.
 
-site east = plate east
-site north = plate north − lair northing
-
-The image is the full rendered plate, including its title and legend. Its corners
-are the SVG viewBox corners, converted with the same scale as the 0 m and 1000 m
-east ticks. North uses that scale too. The plate's north axis increases upward.
+The image is the full rendered plate, including its title, inset, and legend.
+Its corners are the SVG viewBox corners, converted with the same scale as the
+0 m and 1000 m east ticks. North uses that scale too. The plate's north axis
+increases upward.
 */
 
-export function estimateToSite(east, north, lairNorthM) {
-  return { x: east, y: north - lairNorthM };
+export function estimateToSite(east, north) {
+  return { x: east, y: north };
 }
 
 export function svgUnitsPerMeter(calibration) {
@@ -29,9 +25,8 @@ export function imageBounds(record) {
   const perMeter = svgUnitsPerMeter(calibration);
   if (!calibration || !(perMeter > 0)) return null;
   if (typeof calibration.svgWidth !== "number" || typeof calibration.svgHeight !== "number") return null;
-  if (typeof calibration.lairNorthM !== "number") return null;
   const east = (svgX) => (svgX - calibration.eastZeroSvgX) / perMeter;
-  const north = (svgY) => (calibration.northZeroSvgY - svgY) / perMeter - calibration.lairNorthM;
+  const north = (svgY) => (calibration.northZeroSvgY - svgY) / perMeter;
   return {
     west: east(0),
     east: east(calibration.svgWidth),
