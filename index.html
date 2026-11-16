@@ -61,6 +61,14 @@
             </div>
             <p id="examples-help">Sample points on Maren: an anchor, a computed bearing, and an approximate fix. Hidden until this is checked. They are not survey records.</p>
           </div>
+          <div class="field estimate">
+            <div class="check-row">
+              <input id="show-estimate" name="estimate" type="checkbox" aria-describedby="estimate-help">
+              <label for="show-estimate">Estimate (unverified)</label>
+            </div>
+            <p id="estimate-help">Off until checked. On Eden, this draws a relief plate for the Dragon's Lair area. It is not a survey.</p>
+            <p id="estimate-method" class="hint" hidden></p>
+          </div>
           <fieldset>
             <legend>Categories</legend>
             <p class="hint">Each category has its own shape and color. The count is places on this world that match the search, including categories you have turned off.</p>
@@ -103,6 +111,7 @@
             <div class="map-panel-rail" data-panel="legend-panel" hidden aria-hidden="true"><span></span></div>
             <div id="map-info-panel" class="map-corner-panel" role="region" aria-label="Map info" tabindex="-1" hidden>
               <p id="north-note" class="map-info-note"></p>
+              <p id="estimate-note" class="map-info-note" hidden></p>
               <aside id="sheet-card" class="sheet-card" hidden aria-label="Topographic sheet">
                 <p class="sheet-kicker">Field sheet</p>
                 <p id="sheet-world" class="sheet-world">—</p>
@@ -145,6 +154,7 @@
             <div id="scale-rule" class="scale-rule" aria-hidden="true"></div>
             <div id="scale-labels" class="scale-labels" aria-hidden="true"></div>
           </div>
+          <p id="estimate-caption" class="hud estimate-caption" hidden>Estimate (unverified)</p>
           <p id="cursor" class="hud cursor" aria-hidden="true"></p>
           <p id="grid-step" class="hud grid-step" aria-hidden="true"></p>
         </div>

@@ -18,6 +18,8 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/location-schema.json` | Worlds, compass status, categories, icon shapes, and colors. |
 | `data/terrain.geojson` | Surveyed ground for the topographic view: surfaces, and later ridges, rivers, lakes, and outcrops. |
 | `data/explored.geojson` | Ground V3KTR has traveled. The topographic sheet reveals a buffer around these points and paths. |
+| `data/eden-relief-estimate.json` | The Eden relief plate: image, method, and how its pixels sit on the display plane. The map draws it only when **Estimate (unverified)** is checked. |
+| `data/eden-lair-relief-estimate.png` | That plate. Contours, schematic land cover, and labeled places. An estimate, not a survey. |
 | `data/surface-palette.json` | Fill colors for topographic surfaces. This is the only place those colors are set. |
 | `data/hints.json` | Gameplay tips. One object per tip. The hints page reads this file. |
 | `data/bot-skills.json` | Bot skill index: categories and one object per skill. The skills page reads this file. |
@@ -34,6 +36,7 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `scripts/skills.test.mjs` | Checks skill search, the query string, and that skill Markdown is escaped. |
 | `scripts/terrain.test.mjs` | Checks the topographic grid, contours, and surface colors. |
 | `scripts/explored.test.mjs` | Checks the explored-ground buffer and the fog readout. |
+| `scripts/relief.test.mjs` | Checks the Eden relief plate georeference and the estimated places. |
 | `bot-skills/` | One folder per bot skill. Each folder holds `SKILL.md`. See `bot-skills/README.md`. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
@@ -56,7 +59,7 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, or skills. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. Helpful Hints and Bot Skills are linked from the site navigation. Bot Skills is `skills.html`.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, or skills. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. **Estimate (unverified)** draws an Eden relief plate for the Dragon's Lair area. It stays off until that box is checked. `?estimate=1` opens the page with the plate on. Helpful Hints and Bot Skills are linked from the site navigation. Bot Skills is `skills.html`.
 
 The map has two views. **Simple** is the default dark survey plot. **Topographic** is the flat field sheet described below. The choice is stored in this browser. A link can force it with `?view=simple` or `?view=topo`.
 
@@ -162,6 +165,18 @@ Geometry is `Point`, `MultiPoint`, `LineString`, `MultiLineString`, `Polygon`, o
 node scripts/validate-explored.mjs
 ```
 
+## Eden relief estimate
+
+`data/eden-relief-estimate.json` describes one reference image, `data/eden-lair-relief-estimate.png`. The map draws it on Eden when **Estimate (unverified)** is checked. The checkbox starts off. It is not surveyed ground, so it is not a feature in `data/terrain.geojson`, and it does not clear fog.
+
+The plate measures east and north from Talon's Public Outpost. This site's Eden origin is still Dragons Lair Base at (0, 0). The plate is shifted so the Lair on the image sits on that origin: display east = plate east, and display north = plate north − 2936.2 m. 2936.2 m is the fitted Outpost-to-Lair distance. On the plate the Lair is due north of the Outpost.
+
+Heights on the plate are hover-survey estimates: elevation = 58 m minus the hover reading, and the Outpost is the 0 m datum. Positions are trilaterated from in-game Nav distances. North is a convention, the bearing from the Outpost to Dragon's Lair, because the game has no compass. `north_derived` for Eden stays false.
+
+Talon's Public Outpost and Talon's Copper Site are locations with `approximate` set to true. Elara and Talon's Silica Site are in the file without a display position, because the bearing is unknown. Dragon's Lair is the existing origin and is not entered again. The plate's interpolated Lair height is not written onto that feature.
+
+Do not add anyone else's base, name, or position to this layer or to the location file.
+
 ## How to add a location
 
 The map reads `data/locations.geojson` only. Append one feature to the `features` array after a session when a place should be remembered. Keep the file a single `FeatureCollection`. Do not invent a bearing or a distance. An unknown value is JSON `null`, not `""`, `"unknown"`, or `"n/a"`.
@@ -176,7 +191,7 @@ node scripts/validate-hints.mjs
 node scripts/validate-bot-skills.mjs
 node scripts/validate-terrain.mjs
 node scripts/validate-explored.mjs
-node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs
+node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/relief.test.mjs
 ```
 
 The same checks run in GitHub Actions.
@@ -321,7 +336,7 @@ If the push to `main` happened before that source was selected, open the **Actio
 7. For a bot playbook that was actually learned, add a skill under `bot-skills/` as described in `bot-skills/README.md`.
 8. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
 9. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-10. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs`.
+10. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/relief.test.mjs`.
 11. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.

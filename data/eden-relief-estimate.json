@@ -1,0 +1,18 @@
+{
+  "id": "eden-lair-relief-estimate",
+  "world": "Eden",
+  "label": "Estimate (unverified)",
+  "defaultVisible": false,
+  "image": "data/eden-lair-relief-estimate.png",
+  "method": "Hover-survey heights: elevation is 58 m minus the hover reading, and Talon's Public Outpost is the 0 m datum. Positions are trilaterated from in-game Nav distances. North is the bearing from the Outpost to Dragon's Lair, because the game has no compass. This plate is an estimate and is not a survey.",
+  "calibration": {
+    "svgWidth": 806.4,
+    "svgHeight": 720,
+    "eastZeroSvgX": 240.887719,
+    "northZeroSvgY": 466.676343,
+    "eastTickSvgX": 304.545194,
+    "metersPerTick": 1000,
+    "lairNorthM": 2936.2,
+    "note": "eastZeroSvgX is the plate's 0 m east tick. eastTickSvgX is the 1000 m east tick. North uses the same metres-per-pixel scale. lairNorthM is Dragon's Lair on the plate, due north of the Outpost. Display metres subtract that northing so the Lair stays at the Eden origin."
+  }
+}
