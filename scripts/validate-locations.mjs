@@ -445,8 +445,25 @@ for (const [world, anchor] of Object.entries(schema.origin_anchor ?? {})) {
   if (previous.properties?.world !== world) {
     fail(`origin_anchor.${world}.previous_feature_id`, "must be on the same world");
   }
-  if (previous.properties?.reanchor_pending !== true) {
-    fail(`origin_anchor.${world}.previous_feature_id`, "the previous anchor must be reanchor_pending until its offset is applied");
+  const offset = anchor?.offset_from_previous_m ?? null;
+  const pending = previous.properties?.reanchor_pending === true;
+  if (offset === null) {
+    if (!pending) {
+      fail(
+        `origin_anchor.${world}.previous_feature_id`,
+        "the previous anchor must be reanchor_pending until its offset is measured",
+      );
+    }
+  } else if (pending) {
+    fail(
+      `origin_anchor.${world}.previous_feature_id`,
+      "the offset is measured, so the previous anchor must not be reanchor_pending",
+    );
+  } else if (previous.properties?.x !== offset.x || previous.properties?.y !== offset.y) {
+    fail(
+      `origin_anchor.${world}.previous_feature_id`,
+      "the previous anchor's stored x and y must match offset_from_previous_m",
+    );
   }
 }
 

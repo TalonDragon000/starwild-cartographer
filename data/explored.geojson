@@ -1,6 +1,6 @@
 {
   "type": "FeatureCollection",
-  "description": "Ground V3KTR has traveled. The topographic view buffers each feature by properties.radius_m, or by default_radius_m when that is null. Fog covers everything outside those buffers. Coordinates are display meters, [east, north], except a feature with reanchor_pending true: those coordinates are the previous origin frame and are not drawn. Example features stay hidden unless the page is opened with ?demo=1. Do not invent a path. Schema: id, example, world, radius_m, date, source, notes, reanchor_pending. See the README.",
+  "description": "Ground V3KTR has traveled. The topographic view buffers each feature by properties.radius_m, or by default_radius_m when that is null. Fog covers everything outside those buffers. Coordinates are display meters, [east, north], in the current origin frame. A feature with reanchor_pending true is still in a previous frame and is not drawn. Example features stay hidden unless the page is opened with ?demo=1. Do not invent a path. Schema: id, example, world, radius_m, date, source, notes, reanchor_pending. See the README.",
   "default_radius_m": 40,
   "updated": null,
   "features": [
@@ -9,7 +9,10 @@
       "id": "eden-2026-11-12-dragons-lair-base",
       "geometry": {
         "type": "Point",
-        "coordinates": [0, 0]
+        "coordinates": [
+          -2789.3,
+          244
+        ]
       },
       "properties": {
         "id": "eden-2026-11-12-dragons-lair-base",
@@ -18,8 +21,8 @@
         "radius_m": null,
         "date": "2026-11-12",
         "source": "logs/2026-11-12.md",
-        "notes": "Dragons Lair Base was visited on 2026-11-12. These coordinates are the previous Eden origin, not meters from Talon's Public Outpost. The offset has not been measured. Not drawn until that offset is stored. The radius is not a surveyed boundary.",
-        "reanchor_pending": true
+        "notes": "Dragons Lair Base. The sheet clears the default radius around this visited point. The display origin is Talon's Public Outpost. This point is 2.8 km west and slightly north of that origin. The radius is not a surveyed boundary.",
+        "reanchor_pending": false
       }
     },
     {
@@ -28,10 +31,22 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [90, 20],
-          [160, 90],
-          [190, 130],
-          [240, 190]
+          [
+            90,
+            20
+          ],
+          [
+            160,
+            90
+          ],
+          [
+            190,
+            130
+          ],
+          [
+            240,
+            190
+          ]
         ]
       },
       "properties": {

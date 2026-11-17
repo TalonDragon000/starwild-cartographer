@@ -308,16 +308,29 @@ button:hover, select:hover, input[type="search"]:hover, input[type="email"]:hove
 
 .map-pin.is-faded { opacity: 0.45; }
 
-.examples .check-row {
+.examples .check-row,
+.estimate .check-row {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   min-height: 44px;
 }
 
-.examples input { width: 1.15rem; height: 1.15rem; accent-color: var(--cyan); }
+.examples input,
+.estimate input { width: 1.15rem; height: 1.15rem; accent-color: var(--cyan); }
 
-.examples label { margin: 0; }
+.examples label,
+.estimate label { margin: 0; }
+
+.sign-links {
+  margin: 0.2rem 0 0.6rem;
+  padding-left: 1.2rem;
+}
+
+.sign-links a,
+.estimate a {
+  color: var(--gold);
+}
 
 .panel .hint { margin: 0.2rem 0 0.8rem; font-size: 0.95rem; color: var(--muted); }
 
@@ -406,6 +419,21 @@ fieldset {
 
 .cursor { bottom: 1.8rem; }
 
+.map-frame .estimate-caption {
+  top: 0.65rem;
+  left: 3.4rem;
+  max-width: min(18rem, calc(100% - 8rem));
+  background: #6b1d16;
+  color: #fff6ea;
+  border: 1px solid #f0d2a0;
+  font-weight: 700;
+}
+
+.leaflet-reliefEstimate-pane,
+.relief-estimate-overlay {
+  pointer-events: none;
+}
+
 .cursor:empty { display: none; }
 
 .grid-step { bottom: 0.35rem; }
@@ -425,6 +453,13 @@ html[data-view="topo"] #map,
   color: var(--topo-ink);
   border: 1px solid var(--topo-ink);
   font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.map-frame.view-topo .estimate-caption {
+  background: #6b1d16;
+  color: #fff6ea;
+  border: 1px solid #f0d2a0;
+  font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
 }
 
 .sheet-card {
@@ -943,6 +978,7 @@ html[data-view="topo"] #map,
 
 .banner-example { background: #5c4314; color: #fff8e8; }
 .banner-approx { background: #24351c; color: #e7f6d8; }
+.banner-estimate { background: #6b1d16; color: #fff6ea; }
 .banner-origin { background: #1d3a45; color: #e7f6fb; }
 .banner-world { background: #5a2e24; color: #fff1ec; }
 

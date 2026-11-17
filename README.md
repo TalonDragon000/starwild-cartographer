@@ -18,6 +18,11 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/location-schema.json` | Worlds, compass status, categories, icon shapes, and colors. |
 | `data/terrain.geojson` | Surveyed ground for the topographic view: surfaces, and later ridges, rivers, lakes, and outcrops. |
 | `data/explored.geojson` | Ground V3KTR has traveled. The topographic sheet reveals a buffer around these points and paths. |
+| `data/eden-relief-estimate.json` | The Eden relief plate: image, method, and how its pixels sit on the display plane. The map draws it only when **Estimate (unverified)** is checked. |
+| `data/eden-lair-relief-estimate.png` | That plate. Contours, schematic land cover, and labeled places. An estimate, not a survey. |
+| `data/eden-lair-relief-estimate.svg` | The same plate as a drawing. The map displays the PNG. |
+| `data/eden/terrain-notes.md` | Ground notes for the Eden estimate. Not a survey. |
+| `assets/eden/signs/` | Downloadable You Are Here posters for Talon's Public Outpost. |
 | `data/surface-palette.json` | Fill colors for topographic surfaces. This is the only place those colors are set. |
 | `data/hints.json` | Gameplay tips. One object per tip. The hints page reads this file. |
 | `data/bot-skills.json` | Bot skill index: categories and one object per skill. The skills page reads this file. |
@@ -43,6 +48,7 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `scripts/contrib.test.mjs` | Checks community point plotting, the uncalibrated compass, and the re-anchor note. |
 | `scripts/terrain.test.mjs` | Checks the topographic grid, contours, and surface colors. |
 | `scripts/explored.test.mjs` | Checks the explored-ground buffer and the fog readout. |
+| `scripts/relief.test.mjs` | Checks the Eden relief plate georeference and the estimated places. |
 | `bot-skills/` | One folder per bot skill. Each folder holds `SKILL.md`. See `bot-skills/README.md`. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
@@ -65,7 +71,7 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, skills, or tutorials. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. Helpful Hints, Bot Skills, and Bot Tutorials are linked from the site navigation. Bot Skills is `skills.html`. Bot Tutorials is `tutorials.html`.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, skills, or tutorials. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. **Estimate (unverified)** draws an Eden relief plate for the Dragon's Lair area. It stays off until that box is checked. `?estimate=1` opens the page with the plate on. Helpful Hints, Bot Skills, and Bot Tutorials are linked from the site navigation. Bot Skills is `skills.html`. Bot Tutorials is `tutorials.html`.
 
 `js/config.js` ships with the public Supabase URL and anon key, so the community sign-in block is on. Magic links return to <https://talondragon000.github.io/starwild-cartographer/>. Clearing both strings in that file hides the block, and the page does not request Supabase.
 
@@ -98,9 +104,9 @@ y = anchor_y + distance_m * cos(bearing_deg)
 
 Nav markers and visible planets stay on the place that saw them. A nav marker is not a separate point until it has its own feature. A distance without a bearing is not plotted.
 
-The Eden origin is `eden-2026-11-15-talons-public-outpost`, Talon's Public Outpost, stored at x 0, y 0. `data/location-schema.json` records that on `origin_anchor.Eden`. Dragons Lair Base remains a base. It is not the origin. The offset from the Lair to the outpost has not been measured, so `offset_from_previous_m` is `null`. Do not invent it.
+The Eden origin is `eden-2026-11-16-talons-public-outpost`, Talon's Public Outpost, stored at x 0, y 0. Its map pin is a red star. `data/location-schema.json` records that on `origin_anchor.Eden`. Dragons Lair Base is a base, not the origin. It is 2.8 km west and slightly north of the outpost, at true azimuth 275 degrees, and uses a normal marker. Eden north is a sun-referenced estimate: sunrise to sunset is treated as east to west, about plus or minus 15 degrees. `north_derived` is true, and the uncertainty is in `north_note`.
 
-`offset_from_previous_m` is the previous anchor's east and north in the new frame, `{ "x": east, "y": north }`, or `null` when that position has not been measured. The Lair, and every place logged from it, has `reanchor_pending` true, null `x` and `y`, and no geometry. The info panel lists those places. They are not plotted, and the pending flag is not drawn on the map. After the offset is measured, store it, shift the pending places, and set `reanchor_pending` to false. Only one non-example origin is allowed on a world.
+`offset_from_previous_m` is the previous anchor's east and north in the new frame, `{ "x": east, "y": north }`, or `null` when that position has not been measured. Eden's offset is measured: `{ "x": -2789.3, "y": 244 }`. The Lair is stored at that position and `reanchor_pending` is false, so it is plotted. While an offset is still null, places logged from the previous origin stay `reanchor_pending`, with null `x` and `y` and no geometry. The info panel lists those places. They are not plotted, and the pending flag is not drawn on the map. To change the origin again, set `origin` to false on the current origin and true on the new place, store that place at x 0, y 0, and leave `offset_from_previous_m` null until the shift is measured. Only one non-example origin is allowed on a world.
 
 ## Map views
 
@@ -159,7 +165,7 @@ The page loads this file on open, again every 60 seconds, and when the tab gains
 
 Example features stay hidden. Open the topographic view with `?demo=1` to draw them. That query is for checking the sheet. It is not a record of travel. The example track is on Maren, its notes include `EXAMPLE`, and it stays off the simple view.
 
-The only real feature shipped here is the visit to Dragons Lair Base. Its coordinates are the previous Eden origin, east 0, north 0 in that old frame. `reanchor_pending` is true, so the sheet does not draw it. Talon's Public Outpost is the display origin now, and the offset has not been measured.
+The only real feature shipped here is Dragons Lair Base, at east −2789.3, north 244. That is 2.8 km west and slightly north of the Eden origin, Talon's Public Outpost. `reanchor_pending` is false, so the sheet draws it.
 
 | Field | Meaning |
 | --- | --- |
@@ -178,6 +184,18 @@ Geometry is `Point`, `MultiPoint`, `LineString`, `MultiLineString`, `Polygon`, o
 node scripts/validate-explored.mjs
 ```
 
+## Eden relief estimate
+
+`data/eden-relief-estimate.json` describes one reference image, `data/eden-lair-relief-estimate.png`. The map draws it on Eden when **Estimate (unverified)** is checked. The checkbox starts off. It is not surveyed ground, so it is not a feature in `data/terrain.geojson`, and it does not clear fog.
+
+The plate measures true east and true north from Talon's Public Outpost, and that outpost is the Eden display origin. Display metres match the plate. North is sun-referenced: sunrise to sunset is treated as east to west, about plus or minus 15 degrees. Dragon's Lair is 2.8 km west and slightly north, at azimuth 275 degrees. Talon's Silica Site is 149 m southwest, at azimuth 223 degrees. Talon's Copper Site is 543 m south and slightly east, at azimuth 171 degrees. Silica and Copper elevations are unknown. An earlier Copper placement, about 3.5 km from the Outpost with an estimated height of +14 m, was a different marker and is not on the map.
+
+Heights that were hover-surveyed use elevation = 58 m minus the hover reading, and the Outpost is the 0 m datum. The Outpost pin is a red star. Dragons Lair Base uses a normal structure marker. Ground seen from the Outpost is written in `data/eden/terrain-notes.md`. Portrait and landscape You Are Here posters are in `assets/eden/signs/`.
+
+Talon's Public Outpost, Dragon's Lair, Talon's Silica Site, and Talon's Copper Site are plotted. Elara is in the file without a display position, because the bearing is unknown. The plate's interpolated Lair height is not written onto that feature.
+
+Do not add anyone else's base, name, or position to this layer or to the location file.
+
 ## How to add a location
 
 The map reads `data/locations.geojson` only. Append one feature to the `features` array after a session when a place should be remembered. Keep the file a single `FeatureCollection`. Do not invent a bearing or a distance. An unknown value is JSON `null`, not `""`, `"unknown"`, or `"n/a"`.
@@ -195,7 +213,7 @@ node scripts/validate-terrain.mjs
 node scripts/validate-explored.mjs
 node scripts/validate-compass.mjs
 node scripts/validate-points-sql.mjs
-node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs
+node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs
 ```
 
 The same checks run in GitHub Actions.
@@ -213,8 +231,8 @@ Each feature is a GeoJSON `Feature`. `id` on the feature and `properties.id` are
 | `world` | `Eden`, `Hush`, `Vesper`, `Maren`, `Talus`, or `Thorne`. |
 | `world_unconfirmed` | `true` when the place is filed under that world but the planet was not confirmed. |
 | `region` | Region or landmark name, or `null`. |
-| `origin` | `true` for the one display origin on that world. Stored at x 0, y 0. An example cannot be an origin. Eden's origin is Talon's Public Outpost. |
-| `reanchor_pending` | `true` when this place was logged from a previous origin and the offset has not been applied. `x` and `y` stay null, and the place is not plotted. The info panel lists these places. `false` for a place in the current frame. |
+| `origin` | `true` for the one display origin on that world. Stored at x 0, y 0. An example cannot be an origin. Eden's origin is Talon's Public Outpost, drawn as a red star. |
+| `reanchor_pending` | `true` when this place was logged from a previous origin and the offset has not been applied. `x` and `y` stay null, and the place is not plotted. The info panel lists these places. `false` for a place in the current frame. Eden's measured places are `false`. |
 | `anchor` | `true` when other places may name this feature in `anchor_id`. An origin is an anchor. |
 | `anchor_id` | Id of the reference place on the same world, or `null` for an origin or a point that is not relative to anything. A real place cannot use an example as its anchor. |
 | `bearing_deg` | Degrees clockwise from derived north, from 0 up to but not including 360, or `null`. |
@@ -268,7 +286,7 @@ This is the shape of a new place that is not the origin. It is not itself a feat
     "origin": false,
     "reanchor_pending": false,
     "anchor": false,
-    "anchor_id": "eden-2026-11-15-talons-public-outpost",
+    "anchor_id": "eden-2026-11-16-talons-public-outpost",
     "bearing_deg": null,
     "distance_m": null,
     "x": null,
@@ -406,7 +424,7 @@ If the push to `main` happened before that source was selected, open the **Actio
 8. For a setting or control sequence that was actually seen, append one tutorial to `data/bot-tutorials.json`. Leave `video` null until there is a link.
 9. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
 10. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-11. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-bot-tutorials.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, `node scripts/validate-compass.mjs`, `node scripts/validate-points-sql.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs`.
+11. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-bot-tutorials.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, `node scripts/validate-compass.mjs`, `node scripts/validate-points-sql.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs`.
 12. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.
@@ -417,7 +435,7 @@ The bot appends. The owner can edit any file the bot touched.
 
 | Name | What is known |
 | --- | --- |
-| Eden | Home world. Forests, iron, landing grounds. Talon's Public Outpost is the display origin. Dragons Lair Base, logged 2026-11-12, is a base. Its offset from the outpost has not been measured. |
+| Eden | Home world. Forests, iron, landing grounds. Public outpost. Talon's Public Outpost is the display origin. North is a sun-referenced estimate, about plus or minus 15 degrees. Dragons Lair Base is 2.8 km west and slightly north of the origin. |
 | Hush | Eden's airless moon. Silica. Starfall was seen on 2026-11-12 at about 164 km. Bearing unknown. |
 | Vesper | Named. No survey yet. |
 | Maren | Named. No survey yet. |

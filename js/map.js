@@ -16,6 +16,7 @@ import {
   pointRevealed,
   revealShapes,
 } from "./explored.js";
+import { imageBounds } from "./relief.js";
 import {
   INFO_STORAGE_KEY,
   LEGEND_STORAGE_KEY,
@@ -36,6 +37,10 @@ const form = document.querySelector("#filters");
 const worldSelect = document.querySelector("#world");
 const searchInput = document.querySelector("#search");
 const examplesInput = document.querySelector("#show-examples");
+const estimateInput = document.querySelector("#show-estimate");
+const estimateMethod = document.querySelector("#estimate-method");
+const estimateCaption = document.querySelector("#estimate-caption");
+const estimateNote = document.querySelector("#estimate-note");
 const categoryList = document.querySelector("#category-list");
 const summary = document.querySelector("#summary");
 const northNote = document.querySelector("#north-note");
@@ -80,6 +85,8 @@ let categoriesById = new Map();
 let positions = new Map();
 let skipped = 0;
 let mapView = "simple";
+let reliefRecord = null;
+let reliefLayer = null;
 let palette = null;
 let surfacesById = new Map();
 let terrainCollection = null;
@@ -138,6 +145,7 @@ form.addEventListener("submit", (event) => event.preventDefault());
 worldSelect.addEventListener("change", render);
 searchInput.addEventListener("input", render);
 examplesInput.addEventListener("change", render);
+estimateInput.addEventListener("change", render);
 document.querySelector("#categories-all").addEventListener("click", () => setCategories(true));
 document.querySelector("#categories-none").addEventListener("click", () => setCategories(false));
 for (const input of viewInputs) {
@@ -177,7 +185,7 @@ main();
 async function main() {
   try {
     const exploredPromise = refreshExplored();
-    const [loadedSchema, collection, terrainResult, paletteResult, compassResult, exploredOk] = await Promise.all([
+    const [loadedSchema, collection, terrainResult, paletteResult, compassResult, reliefResult, exploredOk] = await Promise.all([
       fetchJson("data/location-schema.json"),
       fetchJson("data/locations.geojson"),
       fetchJson("data/terrain.geojson").then(
@@ -192,13 +200,20 @@ async function main() {
         (data) => ({ ok: true, data }),
         () => ({ ok: false, data: null }),
       ),
+      fetchJson("data/eden-relief-estimate.json").then(
+        (data) => ({ ok: true, data }),
+        () => ({ ok: false, data: null }),
+      ),
       exploredPromise,
     ]);
     schema = loadedSchema;
     compass = readCompass(compassResult.ok ? compassResult.data : null);
     categoriesById = new Map((schema.categories ?? []).map((category) => [category.id, category]));
     terrainCollection = terrainResult.ok ? terrainResult.data : null;
+    reliefRecord = reliefResult.ok ? reliefResult.data : null;
     if (paletteResult.ok) applyPalette(paletteResult.data);
+    applyReliefCopy();
+    applyInitialEstimate();
     const accepted = [];
     for (const feature of collection.features ?? []) {
       if (usable(feature)) accepted.push(feature);
@@ -226,6 +241,9 @@ async function main() {
     }
     if (!compassResult.ok) {
       problems.push("The compass file did not load. The rose stays uncalibrated.");
+    }
+    if (!reliefResult.ok) {
+      problems.push("The Eden relief estimate did not load.");
     }
     if (problems.length > 0) showError(problems.join(" "));
     render();
@@ -316,6 +334,7 @@ function render() {
   mapFrame.setAttribute("aria-label", `Map of ${world}`);
   northNote.textContent = northCopy(world);
   updateReanchorNote(world);
+  syncEstimateNote();
   updateSheetFacts();
 
   const allCategories = new Set((schema.categories ?? []).map((category) => category.id));
@@ -349,6 +368,7 @@ function render() {
 
   const contributed = communityVisible(community?.getPoints() ?? [], { world, query, categories });
   if (map) {
+    syncRelief();
     drawMarkers(visible, northDerived, { extra: contributed.map((item) => item.plot) });
     drawCommunity(contributed);
   }
@@ -365,7 +385,12 @@ function render() {
     community?.configured && community.loaded && (community.getPoints()?.length ?? 0) > 0
       ? ` ${contributed.length} community point${contributed.length === 1 ? "" : "s"} on the map.`
       : "";
-  summary.textContent = `Showing ${visible.length} location${visible.length === 1 ? "" : "s"} on ${world}. ${plotted} plotted. ${exampleNote}${planetNote}${communityNote}`;
+  const reliefNote = reliefIsShown()
+    ? " Relief estimate is on."
+    : estimateInput.checked && reliefRecord && worldSelect.value !== reliefRecord.world
+      ? " The relief estimate is an Eden layer."
+      : "";
+  summary.textContent = `Showing ${visible.length} location${visible.length === 1 ? "" : "s"} on ${world}. ${plotted} plotted. ${exampleNote}${planetNote}${communityNote}${reliefNote}`;
   const anyPlotted = plotted > 0 || contributed.length > 0;
   mapEmpty.hidden = anyPlotted;
   mapEmpty.textContent = anyPlotted ? "" : `No plotted locations on ${world}.`;
@@ -422,7 +447,7 @@ function drawMarkers(visible, northDerived, options = {}) {
     const marker = L.marker(L.latLng(position.y, position.x), {
       icon: L.divIcon({
         className: "map-pin",
-        html: iconSvg(category.shape, category.color, {
+        html: iconSvg(properties.origin ? "star" : category.shape, properties.origin ? "#c23b22" : category.color, {
           example: properties.example,
           approximate: properties.approximate,
           plate: mapView === "topo",
@@ -509,16 +534,19 @@ function updateReanchorNote(world) {
 }
 
 function fitMap(plotted) {
-  if (plotted.length === 0) {
+  const latlngs = plotted.map((position) => L.latLng(position.y, position.x));
+  const plate = reliefIsShown() ? reliefImageBounds() : null;
+  if (plate) latlngs.push(plate.getSouthWest(), plate.getNorthEast());
+  if (latlngs.length === 0) {
     map.setView(L.latLng(0, 0), 0, { animate: false });
     return;
   }
-  if (plotted.length === 1) {
-    map.setView(L.latLng(plotted[0].y, plotted[0].x), 0, { animate: false });
+  if (latlngs.length === 1) {
+    map.setView(latlngs[0], 0, { animate: false });
     return;
   }
-  const bounds = L.latLngBounds(plotted.map((position) => L.latLng(position.y, position.x)));
-  map.fitBounds(bounds.pad(0.45), { animate: false, maxZoom: 2 });
+  const bounds = L.latLngBounds(latlngs);
+  map.fitBounds(bounds.pad(plate ? 0.04 : 0.45), { animate: false, maxZoom: 2 });
 }
 
 function focusMarker(id) {
@@ -589,7 +617,8 @@ function popupElement(feature, position, northDerived) {
   root.className = "survey-card";
   root.tabIndex = -1;
   if (properties.example) root.append(banner("banner-example", "Example. Not a survey record."));
-  if (properties.approximate) root.append(banner("banner-approx", "Approximate."));
+  if (isEstimate(properties)) root.append(banner("banner-estimate", "Estimate (unverified)."));
+  else if (properties.approximate) root.append(banner("banner-approx", "Approximate."));
   if (properties.origin) root.append(banner("banner-origin", "Origin anchor for this world."));
   if (properties.world_unconfirmed) {
     root.append(banner("banner-world", `Planet not confirmed. Filed under ${properties.world}.`));
@@ -626,17 +655,94 @@ function popupElement(feature, position, northDerived) {
 function placementText(feature, position, northDerived) {
   const properties = feature.properties;
   if (position?.method === "origin") return "Origin. 0 m east, 0 m north.";
+  const approx = isEstimate(properties) ? "Estimate (unverified). " : properties.approximate ? "Approximate. " : "";
   if (position?.method === "bearing") {
     const where = formatEastNorth(position.x, position.y);
-    const approx = properties.approximate ? "Approximate. " : "";
     const north = northDerived ? "" : " Plotted on display north, which is not derived yet.";
     return `${approx}${formatMeters(properties.distance_m)} at ${properties.bearing_deg}° from ${anchorLabel(properties.anchor_id)}. Display position computed: ${where}.${north}`;
   }
   if (position?.method === "stored") {
-    const approx = properties.approximate ? "Approximate. " : "";
     return `${approx}Stored display position: ${formatEastNorth(position.x, position.y)}.`;
   }
+  if (isEstimate(properties)) return "Estimate (unverified). Not plotted. No display position yet.";
   return "Not plotted. No display position yet.";
+}
+
+function isEstimate(properties) {
+  return typeof properties?.quantity_notes === "string" && properties.quantity_notes.includes("Estimate (unverified)");
+}
+
+function applyReliefCopy() {
+  const method = typeof reliefRecord?.method === "string" ? reliefRecord.method : "";
+  estimateMethod.hidden = method === "";
+  estimateMethod.textContent = method;
+}
+
+function applyInitialEstimate() {
+  const requested = new URLSearchParams(location.search).get("estimate");
+  if (requested === "1" || requested === "true") {
+    estimateInput.checked = true;
+    return;
+  }
+  if (requested === "0" || requested === "false") {
+    estimateInput.checked = false;
+    return;
+  }
+  estimateInput.checked = reliefRecord?.defaultVisible === true;
+}
+
+function syncEstimateNote() {
+  const show =
+    reliefRecord &&
+    worldSelect.value === reliefRecord.world &&
+    typeof reliefRecord.method === "string" &&
+    reliefRecord.method !== "";
+  estimateNote.hidden = !show;
+  estimateNote.textContent = show ? reliefRecord.method : "";
+}
+
+function reliefImageBounds() {
+  const bounds = imageBounds(reliefRecord);
+  if (!bounds || typeof L === "undefined") return null;
+  return L.latLngBounds([bounds.south, bounds.west], [bounds.north, bounds.east]);
+}
+
+function reliefIsShown() {
+  return Boolean(estimateInput.checked && reliefRecord && worldSelect.value === reliefRecord.world && reliefImageBounds());
+}
+
+function ensureReliefLayer() {
+  if (reliefLayer || !map || !reliefRecord) return reliefLayer;
+  const bounds = reliefImageBounds();
+  if (!bounds) return null;
+  if (!map.getPane("reliefEstimate")) {
+    map.createPane("reliefEstimate");
+    const pane = map.getPane("reliefEstimate");
+    pane.style.zIndex = "450";
+    pane.style.pointerEvents = "none";
+  }
+  reliefLayer = L.imageOverlay(reliefRecord.image, bounds, {
+    pane: "reliefEstimate",
+    opacity: 1,
+    interactive: false,
+    className: "relief-estimate-overlay",
+    alt: reliefRecord.label || "Estimate (unverified)",
+  });
+  return reliefLayer;
+}
+
+function syncRelief() {
+  const shown = reliefIsShown();
+  estimateCaption.hidden = !shown;
+  if (shown) estimateCaption.textContent = reliefRecord.label || "Estimate (unverified)";
+  if (!map || !reliefRecord) return;
+  const layer = ensureReliefLayer();
+  if (!layer) return;
+  if (shown) {
+    if (!map.hasLayer(layer)) layer.addTo(map);
+  } else if (map.hasLayer(layer)) {
+    map.removeLayer(layer);
+  }
 }
 
 function anchorLabel(anchorId) {

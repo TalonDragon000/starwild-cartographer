@@ -97,14 +97,20 @@ test("example tracks stay hidden until demo is on", () => {
   assert.equal(shown[0].radius, 28);
 });
 
-test("Dragons Lair Base stays in the file and is not drawn while its offset is unknown", () => {
+test("Dragons Lair Base is drawn at the sun-referenced outpost offset", () => {
   assert.equal(collectionRadius(explored), 40);
   const stored = explored.features.find((feature) => feature.id === "eden-2026-11-12-dragons-lair-base");
-  assert.equal(stored.properties.reanchor_pending, true);
-  assert.deepEqual(stored.geometry.coordinates, [0, 0]);
+  assert.equal(stored.properties.reanchor_pending, false);
+  assert.deepEqual(stored.geometry.coordinates, [-2789.3, 244]);
   const entries = exploredFeatures(explored, "Eden", false);
-  assert.equal(entries.length, 0);
-  assert.equal(pointRevealed(0, 0, revealShapes(entries)), false);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].feature.id, "eden-2026-11-12-dragons-lair-base");
+  assert.equal(entries[0].feature.properties.example, false);
+  assert.equal(entries[0].radius, 40);
+  const shapes = revealShapes(entries);
+  assert.equal(pointRevealed(-2789.3, 244, shapes), true);
+  assert.equal(pointRevealed(0, 0, shapes), false);
+  assert.equal(pointRevealed(-2389.3, 244, shapes), false);
   assert.equal(exploredFeatures(explored, "Hush", true).length, 0);
 });
 

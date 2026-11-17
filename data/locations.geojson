@@ -3,62 +3,35 @@
   "features": [
     {
       "type": "Feature",
-      "id": "eden-2026-11-15-talons-public-outpost",
+      "id": "eden-2026-11-12-dragons-lair-base",
       "geometry": {
         "type": "Point",
-        "coordinates": [0, 0]
+        "coordinates": [
+          -2789.3,
+          244
+        ]
       },
-      "properties": {
-        "id": "eden-2026-11-15-talons-public-outpost",
-        "example": false,
-        "approximate": false,
-        "date_discovered": null,
-        "world": "Eden",
-        "world_unconfirmed": false,
-        "region": "Talon's Public Outpost",
-        "origin": true,
-        "reanchor_pending": false,
-        "anchor": true,
-        "anchor_id": null,
-        "bearing_deg": null,
-        "distance_m": null,
-        "x": 0,
-        "y": 0,
-        "z": null,
-        "coordinates_raw": null,
-        "category": "outposts",
-        "subtype": "public outpost",
-        "quantity_notes": "Talon's public outpost on Eden. Designated display origin at 0 m east, 0 m north. The distance and bearing from Dragons Lair Base have not been measured.",
-        "nav_markers": null,
-        "planet_sightings": null,
-        "source": "outpost/eden-outpost.md"
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "eden-2026-11-12-dragons-lair-base",
-      "geometry": null,
       "properties": {
         "id": "eden-2026-11-12-dragons-lair-base",
         "example": false,
-        "approximate": false,
+        "approximate": true,
         "date_discovered": "2026-11-12",
         "world": "Eden",
         "world_unconfirmed": false,
         "region": "Dragons Lair Base",
         "origin": false,
-        "reanchor_pending": true,
+        "reanchor_pending": false,
         "anchor": true,
-        "anchor_id": null,
-        "bearing_deg": null,
-        "distance_m": null,
-        "x": null,
-        "y": null,
+        "anchor_id": "eden-2026-11-16-talons-public-outpost",
+        "bearing_deg": 275,
+        "distance_m": 2800,
+        "x": -2789.3,
+        "y": 244,
         "z": null,
-        "coordinates_raw": "Previous Eden display origin. Offset from Talon's Public Outpost has not been measured.",
-        "category": "outposts",
+        "coordinates_raw": "Estimate. 2.8 km from Talon's Public Outpost at true azimuth 275 degrees, west and slightly north. Sun-referenced, about plus or minus 15 degrees. Interpolated plate height is not stored.",
+        "category": "structures",
         "subtype": "base",
-        "quantity_notes": "TalonDragon000's base. Torch. Outdoor machines under a wooden overhang. Nav showed Power 1d 8h. A base, not the display origin. The offset from Talon's Public Outpost has not been measured, so this place is not plotted.",
+        "quantity_notes": "TalonDragon000's base. Torch. Outdoor machines under a wooden overhang. Nav showed Power 1d 8h. Estimate (unverified) display position: 2800 m from Talon's Public Outpost, west and slightly north. The Outpost is the display origin and the red star. This base uses a normal marker. The plate interpolates a Lair height and that height is not stored.",
         "nav_markers": null,
         "planet_sightings": null,
         "source": "logs/2026-11-12.md"
@@ -77,7 +50,7 @@
         "world_unconfirmed": false,
         "region": "V3KTR first spawn",
         "origin": false,
-        "reanchor_pending": true,
+        "reanchor_pending": false,
         "anchor": true,
         "anchor_id": "eden-2026-11-12-dragons-lair-base",
         "bearing_deg": null,
@@ -88,7 +61,7 @@
         "coordinates_raw": "~276 m from Dragons Lair Base, bearing unknown",
         "category": "spawns",
         "subtype": "first spawn",
-        "quantity_notes": "About 276 m from Dragons Lair Base. Bearing unknown. Logged from Dragons Lair Base, so it stays unplotted until the offset to Talon's Public Outpost is measured. Two stripped travel pods. A Workbench. Mixed conifer and broadleaf forest. Tall gray rock spire. Snowy-peaked mountain. Red-dotted berry-like bushes.",
+        "quantity_notes": "About 276 m from Dragons Lair Base. Bearing unknown. Two stripped travel pods. A Workbench. Mixed conifer and broadleaf forest. Tall gray rock spire. Snowy-peaked mountain. Red-dotted berry-like bushes.",
         "nav_markers": [
           {
             "name": "Elara",
@@ -193,6 +166,145 @@
     },
     {
       "type": "Feature",
+      "id": "eden-2026-11-16-talons-public-outpost",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0,
+          0,
+          0
+        ]
+      },
+      "properties": {
+        "id": "eden-2026-11-16-talons-public-outpost",
+        "example": false,
+        "approximate": true,
+        "date_discovered": "2026-11-16",
+        "world": "Eden",
+        "world_unconfirmed": false,
+        "region": "Talon's Public Outpost",
+        "origin": true,
+        "reanchor_pending": false,
+        "anchor": true,
+        "anchor_id": null,
+        "bearing_deg": null,
+        "distance_m": null,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "coordinates_raw": "Eden display origin. Elevation 0 m is the hover-survey datum. North is sun-referenced true north, about plus or minus 15 degrees.",
+        "category": "outposts",
+        "subtype": "public outpost",
+        "quantity_notes": "Estimate (unverified). Talon's public outpost and the Eden display origin. The map pin is a red star. Elevation 0 m is the hover-survey datum: elevation is 58 m minus a hover reading of 58 m. North is sun-referenced, about plus or minus 15 degrees: sunrise to sunset is treated as east to west.",
+        "nav_markers": null,
+        "planet_sightings": null,
+        "source": "logs/2026-11-16.md"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "eden-2026-11-16-talons-copper-site",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          85,
+          -536.3
+        ]
+      },
+      "properties": {
+        "id": "eden-2026-11-16-talons-copper-site",
+        "example": false,
+        "approximate": true,
+        "date_discovered": "2026-11-16",
+        "world": "Eden",
+        "world_unconfirmed": false,
+        "region": "Talon's Copper Site",
+        "origin": false,
+        "reanchor_pending": false,
+        "anchor": false,
+        "anchor_id": "eden-2026-11-16-talons-public-outpost",
+        "bearing_deg": 171,
+        "distance_m": 543,
+        "x": 85,
+        "y": -536.3,
+        "z": null,
+        "coordinates_raw": "Estimate. Outpost ground panorama, HUD 543 m, true bearing about 171 degrees, south and slightly east. Bearing uncertainty about plus or minus 15 degrees. Elevation unknown. An earlier 3.5 km marker was a different place and is not this site.",
+        "category": "ores",
+        "subtype": "copper",
+        "quantity_notes": "Estimate (unverified). Talon's copper site, 543 m from Talon's Public Outpost at true azimuth 171 degrees, south and slightly east. Bearing is about plus or minus 15 degrees. Elevation is unknown.",
+        "nav_markers": null,
+        "planet_sightings": null,
+        "source": "logs/2026-11-16.md"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "eden-2026-11-16-elara",
+      "geometry": null,
+      "properties": {
+        "id": "eden-2026-11-16-elara",
+        "example": false,
+        "approximate": true,
+        "date_discovered": "2026-11-16",
+        "world": "Eden",
+        "world_unconfirmed": false,
+        "region": "Elara",
+        "origin": false,
+        "reanchor_pending": false,
+        "anchor": false,
+        "anchor_id": "eden-2026-11-12-dragons-lair-base",
+        "bearing_deg": null,
+        "distance_m": 460,
+        "x": null,
+        "y": null,
+        "z": null,
+        "coordinates_raw": "Estimate. About 460 m from the Lair area (SW Oracle). Bearing unknown. Not placed.",
+        "category": "other",
+        "subtype": "npc",
+        "quantity_notes": "Estimate (unverified). NPC. Nav about 460 m from the Lair area, called SW Oracle on the relief plate. Bearing unknown, so not placed. Low confidence. The 2026-11-12 spawn note is a different reading: about 523 m from V3KTR first spawn, also with no bearing.",
+        "nav_markers": null,
+        "planet_sightings": null,
+        "source": "logs/2026-11-16.md"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "eden-2026-11-16-talons-silica-site",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.8,
+          -108.8
+        ]
+      },
+      "properties": {
+        "id": "eden-2026-11-16-talons-silica-site",
+        "example": false,
+        "approximate": true,
+        "date_discovered": "2026-11-16",
+        "world": "Eden",
+        "world_unconfirmed": false,
+        "region": "Talon's Silica Site",
+        "origin": false,
+        "reanchor_pending": false,
+        "anchor": false,
+        "anchor_id": "eden-2026-11-16-talons-public-outpost",
+        "bearing_deg": 223.1,
+        "distance_m": 149,
+        "x": -101.8,
+        "y": -108.8,
+        "z": null,
+        "coordinates_raw": "Estimate. Outpost ground panorama, HUD 149 m, true bearing about 223.1 degrees, southwest. Bearing uncertainty about plus or minus 15 degrees. Elevation unknown.",
+        "category": "ores",
+        "subtype": "silica",
+        "quantity_notes": "Estimate (unverified). Talon's silica site, 149 m from Talon's Public Outpost at true azimuth 223 degrees, southwest. Bearing is about plus or minus 15 degrees. Elevation is unknown.",
+        "nav_markers": null,
+        "planet_sightings": null,
+        "source": "logs/2026-11-16.md"
+      }
+    },
+    {
+      "type": "Feature",
       "id": "hush-2026-11-12-starfall",
       "geometry": null,
       "properties": {
@@ -226,7 +338,10 @@
       "id": "example-maren-camp",
       "geometry": {
         "type": "Point",
-        "coordinates": [100, 50]
+        "coordinates": [
+          100,
+          50
+        ]
       },
       "properties": {
         "id": "example-maren-camp",
