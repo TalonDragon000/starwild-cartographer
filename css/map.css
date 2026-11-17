@@ -405,6 +405,57 @@ fieldset {
 
 .compass-rose svg { transform-origin: 50% 42%; }
 
+.map-layers {
+  align-self: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.15rem 0.7rem;
+  width: max-content;
+  max-width: 100%;
+  padding: 0.1rem 0.55rem;
+  background: rgba(8, 18, 26, 0.92);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.map-layers label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.map-layers input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--cyan);
+}
+
+.map-frame.view-topo .map-layers {
+  background: rgba(244, 239, 226, 0.94);
+  color: var(--topo-ink);
+  border: 1.5px solid var(--topo-ink);
+}
+
+.map-corner-panel a { color: #8ef0e6; }
+
+.map-frame.view-topo .map-corner-panel a { color: #1d4e89; }
+
+.aerial { margin-top: 1rem; }
+
+.aerial-list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.aerial-list li { margin: 0.35rem 0; }
+
 .hud {
   position: absolute;
   z-index: 500;
@@ -1088,6 +1139,7 @@ code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 0.85rem
     bottom: 0.4rem;
     transform: none;
   }
+  .grid-step { bottom: 4.6rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

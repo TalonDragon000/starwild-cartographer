@@ -62,20 +62,6 @@
             </div>
             <p id="examples-help">Sample points on Maren: an anchor, a computed bearing, and an approximate fix. Hidden until this is checked. They are not survey records.</p>
           </div>
-          <div class="field estimate">
-            <div class="check-row">
-              <input id="show-estimate" name="estimate" type="checkbox" aria-describedby="estimate-help">
-              <label for="show-estimate">Estimate (unverified)</label>
-            </div>
-            <p id="estimate-help">Off until checked. On Eden, this draws a relief plate for the Dragon's Lair area. It is not a survey. The Outpost is the red star at the origin.</p>
-            <p id="estimate-method" class="hint" hidden></p>
-            <p class="hint">In-game signs for Talon's Public Outpost. Approximate, sun-referenced, and not survey grade.</p>
-            <ul class="sign-links">
-              <li><a href="assets/eden/signs/you-are-here-portrait.png" download>You Are Here, portrait</a></li>
-              <li><a href="assets/eden/signs/you-are-here-landscape.png" download>You Are Here, landscape</a></li>
-            </ul>
-            <p class="hint"><a href="data/eden/terrain-notes.md">Ground notes for the estimate</a></p>
-          </div>
           <fieldset>
             <legend>Categories</legend>
             <p class="hint">Each category has its own shape and color. The count is places on this world that match the search, including categories you have turned off.</p>
@@ -122,6 +108,42 @@
               </div>
             </div>
             <p id="contrib-form-status" class="hint" role="status"></p>
+            <section id="aerial" class="aerial" hidden aria-labelledby="aerial-heading">
+              <h3 id="aerial-heading">Upload aerial shot</h3>
+              <p class="hint">Admins only. PNG, JPG, or WebP, up to 10 MB. Do not name or locate anyone else's base. Your own places and neutral NPCs only.</p>
+              <form id="aerial-form">
+                <div class="field">
+                  <label for="aerial-file">Image</label>
+                  <input id="aerial-file" name="image" type="file" accept="image/png,image/jpeg,image/webp" required>
+                </div>
+                <div class="field">
+                  <label for="aerial-planet">Planet</label>
+                  <select id="aerial-planet" name="planet"></select>
+                </div>
+                <div class="field">
+                  <label for="aerial-facing">Facing</label>
+                  <input id="aerial-facing" name="facing" type="text" maxlength="160" autocomplete="off" placeholder="275° or toward the Lair">
+                </div>
+                <div class="field">
+                  <label for="aerial-altitude">Approximate altitude</label>
+                  <input id="aerial-altitude" name="altitude" type="text" maxlength="80" autocomplete="off" placeholder="about 40 m">
+                </div>
+                <div class="field">
+                  <label for="aerial-markers">Markers in the shot</label>
+                  <input id="aerial-markers" name="markers" type="text" maxlength="500" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="aerial-notes">Notes</label>
+                  <textarea id="aerial-notes" name="notes" rows="3" maxlength="2000"></textarea>
+                </div>
+                <button type="submit" id="aerial-submit">Upload</button>
+              </form>
+              <p id="aerial-status" class="hint" role="status"></p>
+              <div class="category-actions">
+                <button type="button" id="aerial-refresh">Refresh status</button>
+              </div>
+              <ul id="aerial-list" class="aerial-list"></ul>
+            </section>
           </div>
         </section>
         <p id="summary" class="status" role="status" aria-live="polite"></p>
@@ -158,6 +180,13 @@
               <p id="north-note" class="map-info-note"></p>
               <p id="reanchor-note" class="map-info-note" hidden></p>
               <p id="estimate-note" class="map-info-note" hidden></p>
+              <p id="estimate-method" class="map-info-note" hidden></p>
+              <p class="map-info-note">Topography draws the Eden relief plate. Survey fog covers ground outside the revealed polygons in <code>data/eden/coverage.geojson</code>. Both switches sit in the corner.</p>
+              <ul class="sign-links">
+                <li><a href="assets/eden/signs/you-are-here-portrait.png" download>You Are Here, portrait</a></li>
+                <li><a href="assets/eden/signs/you-are-here-landscape.png" download>You Are Here, landscape</a></li>
+              </ul>
+              <p class="map-info-note"><a href="data/eden/terrain-notes.md">Ground notes for the relief plate</a></p>
               <aside id="sheet-card" class="sheet-card" hidden aria-label="Topographic sheet">
                 <p class="sheet-kicker">Field sheet</p>
                 <p id="sheet-world" class="sheet-world">—</p>
@@ -173,6 +202,16 @@
               <p id="topo-note" class="map-note" hidden>Fog = unexplored. Surveyed color and contours show only on ground that has been traveled.</p>
             </div>
             <div class="map-panel-rail" data-panel="map-info-panel" hidden aria-hidden="true"><span></span></div>
+            <div class="map-layers" role="group" aria-label="Map layers">
+              <label>
+                <input id="show-estimate" name="estimate" type="checkbox">
+                <span>Topography</span>
+              </label>
+              <label>
+                <input id="show-coverage" name="coverage" type="checkbox" checked>
+                <span>Survey fog</span>
+              </label>
+            </div>
             <div class="map-corner-buttons">
               <button type="button" id="legend-toggle" class="map-corner-button" aria-expanded="false" aria-controls="legend-panel" hidden>
                 <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">

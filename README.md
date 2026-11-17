@@ -30,6 +30,9 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/compass.json` | Compass rose calibration. `calibrated` stays false and `north_offset_deg` stays null until it is measured in game. |
 | `js/config.js` | Public Supabase URL and anon key for the live project. Clearing both strings turns community points off. |
 | `supabase/migrations/0001_points.sql` | `points` and `landmark_sightings` tables, with row-level security. Applied in Supabase, not by the static site. |
+| `supabase/migrations/0002_aerial_uploads.sql` | Private `aerial-uploads` bucket and `aerial_uploads` table. Apply it in Supabase. The webhook secrets stay out of the repo. |
+| `data/eden/poi-estimate.json` | Public POIs and the relief plate's metre bounds. |
+| `data/eden/coverage.geojson` | Revealed polygons for survey fog. Append a polygon for a new aerial footprint. |
 | `index.html`, `hints.html`, `skills.html`, `tutorials.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. Community sign-in loads `supabase-js` from a CDN only when `js/config.js` is filled in. |
 | `worlds/` | One Markdown file per known world, plus a template for a world that does not have a file yet. |
 | `logs/` | Travel journal. One Markdown file per day. |
@@ -40,6 +43,8 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `scripts/validate-bot-tutorials.mjs` | Checks `data/bot-tutorials.json`. |
 | `scripts/validate-compass.mjs` | Checks `data/compass.json`. |
 | `scripts/validate-points-sql.mjs` | Checks the community-points migration for its tables, grants, and admin guard. |
+| `scripts/validate-coverage.mjs` | Checks the Eden survey-fog polygon and the relief bounds. |
+| `scripts/validate-aerial-sql.mjs` | Checks the aerial-upload migration, bucket, and admin guard. |
 | `scripts/validate-terrain.mjs` | Checks `data/terrain.geojson` and `data/surface-palette.json`. |
 | `scripts/validate-explored.mjs` | Checks `data/explored.geojson`. |
 | `scripts/place.test.mjs` | Checks the bearing-to-position math. |
@@ -49,6 +54,8 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `scripts/terrain.test.mjs` | Checks the topographic grid, contours, and surface colors. |
 | `scripts/explored.test.mjs` | Checks the explored-ground buffer and the fog readout. |
 | `scripts/relief.test.mjs` | Checks the Eden relief plate georeference and the estimated places. |
+| `scripts/coverage.test.mjs` | Checks that survey fog reveals only the listed polygons. |
+| `scripts/aerial.test.mjs` | Checks the admin gate, the image limits, and the webhook header. |
 | `bot-skills/` | One folder per bot skill. Each folder holds `SKILL.md`. See `bot-skills/README.md`. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
@@ -71,7 +78,7 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, skills, or tutorials. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. **Estimate (unverified)** draws an Eden relief plate for the Dragon's Lair area. It stays off until that box is checked. `?estimate=1` opens the page with the plate on. Helpful Hints, Bot Skills, and Bot Tutorials are linked from the site navigation. Bot Skills is `skills.html`. Bot Tutorials is `tutorials.html`.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, skills, or tutorials. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. **Topography** in the map's corner draws an Eden relief plate for the Dragon's Lair area. It stays off until that switch is checked. `?estimate=1` opens the page with the plate on. **Survey fog**, also in that corner, covers ground outside `data/eden/coverage.geojson`. It starts on. `?fog=0` opens the page with the fog off. The scale bar stays on the map in both views. Map notes stay behind the **?** button. Helpful Hints, Bot Skills, and Bot Tutorials are linked from the site navigation. Bot Skills is `skills.html`. Bot Tutorials is `tutorials.html`.
 
 `js/config.js` ships with the public Supabase URL and anon key, so the community sign-in block is on. Magic links return to <https://talondragon000.github.io/starwild-cartographer/>. Clearing both strings in that file hides the block, and the page does not request Supabase.
 
@@ -186,7 +193,7 @@ node scripts/validate-explored.mjs
 
 ## Eden relief estimate
 
-`data/eden-relief-estimate.json` describes one reference image, `data/eden-lair-relief-estimate.png`. The map draws it on Eden when **Estimate (unverified)** is checked. The checkbox starts off. It is not surveyed ground, so it is not a feature in `data/terrain.geojson`, and it does not clear fog.
+`data/eden-relief-estimate.json` describes one reference image, `data/eden-lair-relief-estimate.png`. The map draws it on Eden when **Topography** is checked. The switch starts off. The image is positioned with `extent.image` in `data/eden/poi-estimate.json`: those corners are metres from Talon's Public Outpost, so the plate's axes meet the coordinate grid. `extent.axes` is the data window inside the frame. The plate is not surveyed ground, so it is not a feature in `data/terrain.geojson`, and it does not by itself clear fog.
 
 The plate measures true east and true north from Talon's Public Outpost, and that outpost is the Eden display origin. Display metres match the plate. North is sun-referenced: sunrise to sunset is treated as east to west, about plus or minus 15 degrees. Dragon's Lair is 2.8 km west and slightly north, at azimuth 275 degrees. Talon's Silica Site is 149 m southwest, at azimuth 223 degrees. Talon's Copper Site is 543 m south and slightly east, at azimuth 171 degrees. Silica and Copper elevations are unknown. An earlier Copper placement, about 3.5 km from the Outpost with an estimated height of +14 m, was a different marker and is not on the map.
 
@@ -195,6 +202,14 @@ Heights that were hover-surveyed use elevation = 58 m minus the hover reading, a
 Talon's Public Outpost, Dragon's Lair, Talon's Silica Site, and Talon's Copper Site are plotted. Elara is in the file without a display position, because the bearing is unknown. The plate's interpolated Lair height is not written onto that feature.
 
 Do not add anyone else's base, name, or position to this layer or to the location file.
+
+## Survey fog
+
+`data/eden/coverage.geojson` is the revealed ground. Coordinates are the same metres as the map: `[east, north]` from Talon's Public Outpost. **Survey fog** paints the rest of the Eden view and leaves those polygons clear. The seeded polygon is the non-hatched part of the relief plate. Hatched ground on that plate was not in the ground views, so it stays under the fog.
+
+A later aerial shot is a new feature in that file. Terrain seen in the shot is a feature in `data/terrain.geojson`. A place seen in the shot is a feature in `data/locations.geojson`. The map reads those files on its own. No script change is required. The field list and a copy-paste feature are in [`data/README.md`](data/README.md).
+
+Do not publish another player's base. Record your own places and neutral NPCs only.
 
 ## How to add a location
 
@@ -213,7 +228,9 @@ node scripts/validate-terrain.mjs
 node scripts/validate-explored.mjs
 node scripts/validate-compass.mjs
 node scripts/validate-points-sql.mjs
-node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs
+node scripts/validate-coverage.mjs
+node scripts/validate-aerial-sql.mjs
+node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs scripts/coverage.test.mjs scripts/aerial.test.mjs
 ```
 
 The same checks run in GitHub Actions.
@@ -398,7 +415,21 @@ where id = '<point id>';
 
 `landmark_sightings` is for a later triangulation. It stores the observer's `observer_x` and `observer_y`, the `landmark_point_id`, and optional `bearing_deg`, `distance_m`, `slope_note`, and `ground_type`. Anyone can read a sighting. A signed-in user can insert their own. Bearing and distance stay null until they are measured. The map does not draw sightings yet.
 
-There is no admin screen in this version. Verification is the SQL above, run as an admin session or with the service role.
+There is no admin screen for point verification in this version. Verification is the SQL above, run as an admin session or with the service role.
+
+## Aerial uploads
+
+An admin (`app_metadata.role` is `admin`) sees **Upload aerial shot** after signing in. The form takes a PNG, JPG, or WebP up to 10 MB, a planet (Eden by default), a facing (compass or free text), an approximate altitude, the markers visible in the shot, and notes. The image goes to the private Storage bucket `aerial-uploads`, under that admin's user id. The row goes to `public.aerial_uploads` with status `pending`. The page then shows that status. When the row is `processed`, the page shows `processed_summary`.
+
+`supabase/migrations/0002_aerial_uploads.sql` creates the table, the row-level security, the private bucket, and an insert trigger. The trigger calls the edge function `aerial-upload-notify` with the service role key stored in Vault as `aerial_function_bearer`. The function signs the image for 8 days and POSTs JSON to the secret `GROKBOT_WEBHOOK_URL`. The request uses the standard webhook sender key:
+
+```http
+Authorization: Bearer <GROKBOT_WEBHOOK_KEY>
+```
+
+`Authorization` is the header name in `supabase/functions/aerial-upload-notify/index.ts` (`WEBHOOK_AUTH_HEADER`). Change that constant if the receiver expects a different header. The value stays `Bearer` plus the key. Neither secret is in the static site. The JSON body is `upload_id`, `planet`, `image_url`, `uploader`, `facing`, `altitude`, `markers`, `notes`, `created_at`.
+
+The Bolt project did not accept this migration from the agent that wrote it. Apply it by hand. See the pull request for the exact SQL editor and deploy steps. Set the admin role with the same `raw_app_meta_data` update as community points, then sign in again.
 
 ## GitHub Pages
 
@@ -424,7 +455,7 @@ If the push to `main` happened before that source was selected, open the **Actio
 8. For a setting or control sequence that was actually seen, append one tutorial to `data/bot-tutorials.json`. Leave `video` null until there is a link.
 9. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
 10. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-11. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-bot-tutorials.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, `node scripts/validate-compass.mjs`, `node scripts/validate-points-sql.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs`.
+11. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-bot-tutorials.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, `node scripts/validate-compass.mjs`, `node scripts/validate-points-sql.mjs`, `node scripts/validate-coverage.mjs`, `node scripts/validate-aerial-sql.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs scripts/coverage.test.mjs scripts/aerial.test.mjs`.
 12. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.

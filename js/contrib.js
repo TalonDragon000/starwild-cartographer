@@ -5,6 +5,7 @@ An unverified point uses the submitted x and y, faded and without a name label.
 not_found is omitted. Status is never a badge on the public map.
 */
 
+import { mountAerial } from "./aerial.js";
 import { formatEastNorth, isFiniteNumber } from "./place.js";
 
 export const POINT_TAGS = [
@@ -222,6 +223,7 @@ export async function mountCommunity({ map, onChange } = {}) {
       clearDraft();
     }
     syncAdd();
+    mountAerial({ client, user, worldSelect: document.querySelector("#world") });
   }
 
   function syncAdd() {

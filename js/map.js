@@ -16,6 +16,7 @@ import {
   pointRevealed,
   revealShapes,
 } from "./explored.js";
+import { revealedShapes } from "./coverage.js";
 import { imageBounds } from "./relief.js";
 import {
   INFO_STORAGE_KEY,
@@ -38,6 +39,7 @@ const worldSelect = document.querySelector("#world");
 const searchInput = document.querySelector("#search");
 const examplesInput = document.querySelector("#show-examples");
 const estimateInput = document.querySelector("#show-estimate");
+const coverageInput = document.querySelector("#show-coverage");
 const estimateMethod = document.querySelector("#estimate-method");
 const estimateCaption = document.querySelector("#estimate-caption");
 const estimateNote = document.querySelector("#estimate-note");
@@ -87,6 +89,10 @@ let skipped = 0;
 let mapView = "simple";
 let reliefRecord = null;
 let reliefLayer = null;
+let coverageCollection = null;
+let redrawCoverage = () => {};
+const COVERAGE_STORAGE_KEY = "starwild-cartographer.coverageFog";
+const TOPO_STORAGE_KEY = "starwild-cartographer.topography";
 let palette = null;
 let surfacesById = new Map();
 let terrainCollection = null;
@@ -128,6 +134,13 @@ if (map) {
   terrainLayer = L.featureGroup().addTo(map);
   contourOverlay().addTo(map);
   fogOverlay().addTo(map);
+  if (!map.getPane("coverageFog")) {
+    map.createPane("coverageFog");
+    const coveragePane = map.getPane("coverageFog");
+    coveragePane.style.zIndex = "460";
+    coveragePane.style.pointerEvents = "none";
+  }
+  coverageOverlay().addTo(map);
   meterGrid().addTo(map);
   map.on("move zoom viewreset resize", drawScaleBar);
   map.on("zoomend moveend viewreset resize", updateRevealClip);
@@ -145,7 +158,22 @@ form.addEventListener("submit", (event) => event.preventDefault());
 worldSelect.addEventListener("change", render);
 searchInput.addEventListener("input", render);
 examplesInput.addEventListener("change", render);
-estimateInput.addEventListener("change", render);
+estimateInput.addEventListener("change", () => {
+  try {
+    localStorage.setItem(TOPO_STORAGE_KEY, estimateInput.checked ? "1" : "0");
+  } catch {
+    // The layer still switches when storage is unavailable.
+  }
+  render();
+});
+coverageInput?.addEventListener("change", () => {
+  try {
+    localStorage.setItem(COVERAGE_STORAGE_KEY, coverageInput.checked ? "1" : "0");
+  } catch {
+    // The layer still switches when storage is unavailable.
+  }
+  redrawCoverage();
+});
 document.querySelector("#categories-all").addEventListener("click", () => setCategories(true));
 document.querySelector("#categories-none").addEventListener("click", () => setCategories(false));
 for (const input of viewInputs) {
@@ -185,7 +213,7 @@ main();
 async function main() {
   try {
     const exploredPromise = refreshExplored();
-    const [loadedSchema, collection, terrainResult, paletteResult, compassResult, reliefResult, exploredOk] = await Promise.all([
+    const [loadedSchema, collection, terrainResult, paletteResult, compassResult, reliefResult, poiResult, coverageResult, exploredOk] = await Promise.all([
       fetchJson("data/location-schema.json"),
       fetchJson("data/locations.geojson"),
       fetchJson("data/terrain.geojson").then(
@@ -204,6 +232,14 @@ async function main() {
         (data) => ({ ok: true, data }),
         () => ({ ok: false, data: null }),
       ),
+      fetchJson("data/eden/poi-estimate.json").then(
+        (data) => ({ ok: true, data }),
+        () => ({ ok: false, data: null }),
+      ),
+      fetchJson(`data/eden/coverage.geojson?t=${Date.now()}`, { cache: "no-store" }).then(
+        (data) => ({ ok: true, data }),
+        () => ({ ok: false, data: null }),
+      ),
       exploredPromise,
     ]);
     schema = loadedSchema;
@@ -211,9 +247,14 @@ async function main() {
     categoriesById = new Map((schema.categories ?? []).map((category) => [category.id, category]));
     terrainCollection = terrainResult.ok ? terrainResult.data : null;
     reliefRecord = reliefResult.ok ? reliefResult.data : null;
+    if (reliefRecord && poiResult.ok && poiResult.data?.extent) {
+      reliefRecord = { ...reliefRecord, extent: poiResult.data.extent };
+    }
+    coverageCollection = coverageResult.ok ? coverageResult.data : null;
     if (paletteResult.ok) applyPalette(paletteResult.data);
     applyReliefCopy();
     applyInitialEstimate();
+    applyInitialCoverage();
     const accepted = [];
     for (const feature of collection.features ?? []) {
       if (usable(feature)) accepted.push(feature);
@@ -244,6 +285,12 @@ async function main() {
     }
     if (!reliefResult.ok) {
       problems.push("The Eden relief estimate did not load.");
+    }
+    if (!poiResult.ok) {
+      problems.push("The relief bounds file did not load. Topography uses the plate calibration instead.");
+    }
+    if (!coverageResult.ok) {
+      problems.push("Survey coverage did not load. Survey fog stays off until data/eden/coverage.geojson can be read.");
     }
     if (problems.length > 0) showError(problems.join(" "));
     render();
@@ -369,6 +416,7 @@ function render() {
   const contributed = communityVisible(community?.getPoints() ?? [], { world, query, categories });
   if (map) {
     syncRelief();
+    redrawCoverage();
     drawMarkers(visible, northDerived, { extra: contributed.map((item) => item.plot) });
     drawCommunity(contributed);
   }
@@ -688,7 +736,39 @@ function applyInitialEstimate() {
     estimateInput.checked = false;
     return;
   }
+  try {
+    const stored = localStorage.getItem(TOPO_STORAGE_KEY);
+    if (stored === "1" || stored === "0") {
+      estimateInput.checked = stored === "1";
+      return;
+    }
+  } catch {
+    // Fall through to the plate default.
+  }
   estimateInput.checked = reliefRecord?.defaultVisible === true;
+}
+
+function applyInitialCoverage() {
+  if (!coverageInput) return;
+  const requested = new URLSearchParams(location.search).get("fog");
+  if (requested === "0" || requested === "false") {
+    coverageInput.checked = false;
+    return;
+  }
+  if (requested === "1" || requested === "true") {
+    coverageInput.checked = true;
+    return;
+  }
+  try {
+    const stored = localStorage.getItem(COVERAGE_STORAGE_KEY);
+    if (stored === "1" || stored === "0") {
+      coverageInput.checked = stored === "1";
+      return;
+    }
+  } catch {
+    // The checkbox default stays on.
+  }
+  coverageInput.checked = true;
 }
 
 function syncEstimateNote() {
@@ -1173,7 +1253,7 @@ function setMapView(next, options = {}) {
   else delete document.documentElement.dataset.view;
   const topographic = view === "topo";
   sheetCard.hidden = !topographic;
-  scaleBar.hidden = !topographic;
+  scaleBar.hidden = false;
   topoNote.hidden = !topographic;
   surfacePanel.hidden = !topographic;
   syncLegendPanel({ persist: false });
@@ -1830,6 +1910,7 @@ function startExploreWatch() {
   window.setInterval(() => {
     if (document.visibilityState === "hidden") return;
     refreshExplored();
+    refreshCoverage();
   }, EXPLORED_REFRESH_MS);
 }
 
@@ -1837,7 +1918,63 @@ let exploreAttentionTimer = 0;
 function onExploreAttention() {
   if (document.visibilityState === "hidden") return;
   window.clearTimeout(exploreAttentionTimer);
-  exploreAttentionTimer = window.setTimeout(() => refreshExplored(), 300);
+  exploreAttentionTimer = window.setTimeout(() => {
+    refreshExplored();
+    refreshCoverage();
+  }, 300);
+}
+
+async function refreshCoverage() {
+  try {
+    coverageCollection = await fetchJson(`data/eden/coverage.geojson?t=${Date.now()}`, { cache: "no-store" });
+    redrawCoverage();
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
+function coverageOverlay() {
+  const Layer = L.Layer.extend({
+    onAdd(layerMap) {
+      this._map = layerMap;
+      this._canvas = L.DomUtil.create("canvas", "coverage-fog");
+      this._canvas.setAttribute("aria-hidden", "true");
+      layerMap.getPane("coverageFog").appendChild(this._canvas);
+      this._draw = () => drawCoverage(layerMap, this._canvas);
+      redrawCoverage = () => this._draw();
+      layerMap.on("move zoom viewreset resize", this._draw);
+      this._draw();
+    },
+    onRemove(layerMap) {
+      layerMap.off("move zoom viewreset resize", this._draw);
+      this._canvas.remove();
+    },
+  });
+  return new Layer();
+}
+
+function drawCoverage(layerMap, canvas) {
+  const size = layerMap.getSize();
+  if (size.x < 2 || size.y < 2) return;
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  const topLeft = layerMap.containerPointToLayerPoint([0, 0]);
+  L.DomUtil.setPosition(canvas, topLeft);
+  canvas.width = Math.floor(size.x * ratio);
+  canvas.height = Math.floor(size.y * ratio);
+  canvas.style.width = `${size.x}px`;
+  canvas.style.height = `${size.y}px`;
+  const context = canvas.getContext("2d");
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  context.clearRect(0, 0, size.x, size.y);
+  if (!coverageInput?.checked || !coverageCollection) return;
+  const shapes = projectShapes(layerMap, revealedShapes(coverageCollection, worldSelect.value), "container");
+  if (shapes.length === 0) return;
+  context.fillStyle = mapFrame.classList.contains("view-topo") ? "rgba(74, 84, 70, 0.5)" : "rgba(214, 220, 210, 0.34)";
+  context.fillRect(0, 0, size.x, size.y);
+  drawFogHatch(context, size);
+  eraseReveal(context, shapes, 0, 1);
 }
 
 function updateRevealClip() {
@@ -2024,6 +2161,7 @@ function labelBlocked(x, y) {
     legendPanel.hidden ? null : legendPanel,
     infoToggle,
     legendToggle.hidden ? null : legendToggle,
+    document.querySelector(".map-layers"),
   ];
   for (const node of obstacles) {
     if (!node) continue;
@@ -2039,7 +2177,7 @@ function labelBlocked(x, y) {
 }
 
 function drawScaleBar() {
-  if (!map || mapView !== "topo") return;
+  if (!map) return;
   const origin = map.latLngToContainerPoint(L.latLng(0, 0));
   const east = map.latLngToContainerPoint(L.latLng(0, 100));
   const pxPerMeter = Math.abs(east.x - origin.x) / 100;

@@ -25,4 +25,6 @@ jobs:
           node scripts/validate-explored.mjs
           node scripts/validate-compass.mjs
           node scripts/validate-points-sql.mjs
-          node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs
+          node scripts/validate-coverage.mjs
+          node scripts/validate-aerial-sql.mjs
+          node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs scripts/coverage.test.mjs scripts/aerial.test.mjs
