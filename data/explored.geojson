@@ -9,7 +9,7 @@
       "id": "eden-2026-11-12-dragons-lair-base",
       "geometry": {
         "type": "Point",
-        "coordinates": [0, 0]
+        "coordinates": [-2789.3, 244]
       },
       "properties": {
         "id": "eden-2026-11-12-dragons-lair-base",
@@ -18,7 +18,7 @@
         "radius_m": null,
         "date": "2026-11-12",
         "source": "logs/2026-11-12.md",
-        "notes": "Dragons Lair Base, the Eden origin. The sheet clears the default radius around this visited point. The radius is not a surveyed boundary."
+        "notes": "Dragons Lair Base. The sheet clears the default radius around this visited point. The display origin is Talon's Public Outpost. This point is 2.8 km west and slightly north of that origin. The radius is not a surveyed boundary."
       }
     },
     {

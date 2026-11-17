@@ -1,0 +1,17 @@
+{
+  "id": "eden-lair-relief-estimate",
+  "world": "Eden",
+  "label": "Estimate (unverified)",
+  "defaultVisible": false,
+  "image": "data/eden-lair-relief-estimate.png",
+  "method": "Hover-survey heights: elevation is 58 m minus the hover reading, and Talon's Public Outpost is the 0 m datum. The frame is sun-referenced true north, about plus or minus 15 degrees: sunrise to sunset is treated as east to west. Dragon's Lair is 2.8 km west and slightly north. Silica and Copper come from the Outpost panorama. Their elevations are unknown. This plate is an estimate and is not a survey.",
+  "calibration": {
+    "svgWidth": 1036.8,
+    "svgHeight": 633.6,
+    "eastZeroSvgX": 636.756752,
+    "northZeroSvgY": 273.192491,
+    "eastTickSvgX": 731.703581,
+    "metersPerTick": 1000,
+    "note": "eastZeroSvgX is the plate's 0 m east tick. eastTickSvgX is the 1000 m east tick. North uses the same metres-per-pixel scale. Display metres match the plate: Talon's Public Outpost is (0, 0), x is true east, and y is true north."
+  }
+}
