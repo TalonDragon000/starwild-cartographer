@@ -1,7 +1,7 @@
 {
   "worlds": ["Eden", "Hush", "Vesper", "Maren", "Talus", "Thorne"],
   "world_compass": {
-    "Eden": { "north_derived": false, "north_note": null },
+    "Eden": { "north_derived": true, "north_note": "Sun-referenced estimate, about plus or minus 15 degrees. Sunrise to sunset is treated as east to west. Bearings run clockwise from that north." },
     "Hush": { "north_derived": false, "north_note": null },
     "Vesper": { "north_derived": false, "north_note": null },
     "Maren": { "north_derived": false, "north_note": null },

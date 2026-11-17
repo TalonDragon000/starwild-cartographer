@@ -6,7 +6,7 @@
       "id": "eden-2026-11-12-dragons-lair-base",
       "geometry": {
         "type": "Point",
-        "coordinates": [0, 2800]
+        "coordinates": [-2789.3, 244]
       },
       "properties": {
         "id": "eden-2026-11-12-dragons-lair-base",
@@ -19,15 +19,15 @@
         "origin": false,
         "anchor": true,
         "anchor_id": "eden-2026-11-16-talons-public-outpost",
-        "bearing_deg": 0,
+        "bearing_deg": 275,
         "distance_m": 2800,
-        "x": 0,
-        "y": 2800,
+        "x": -2789.3,
+        "y": 244,
         "z": null,
-        "coordinates_raw": "Estimate. 2.8 km due north of Talon's Public Outpost. Outpost ground panorama HUD, 16 Nov 2026. North is the Outpost-to-Lair convention, not a derived compass. Interpolated plate height is not stored.",
-        "category": "outposts",
+        "coordinates_raw": "Estimate. 2.8 km from Talon's Public Outpost at true azimuth 275 degrees, west and slightly north. Sun-referenced, about plus or minus 15 degrees. Interpolated plate height is not stored.",
+        "category": "structures",
         "subtype": "base",
-        "quantity_notes": "TalonDragon000's base. Torch. Outdoor machines under a wooden overhang. Nav showed Power 1d 8h. Estimate (unverified) display position: 2800 m due north of Talon's Public Outpost. Talon's Public Outpost is the display origin. The plate interpolates a Lair height and that height is not stored.",
+        "quantity_notes": "TalonDragon000's base. Torch. Outdoor machines under a wooden overhang. Nav showed Power 1d 8h. Estimate (unverified) display position: 2800 m from Talon's Public Outpost, west and slightly north. The Outpost is the display origin and the red star. This base uses a normal marker. The plate interpolates a Lair height and that height is not stored.",
         "nav_markers": null,
         "planet_sightings": null,
         "source": "logs/2026-11-12.md"
@@ -179,10 +179,10 @@
         "x": 0,
         "y": 0,
         "z": 0,
-        "coordinates_raw": "Eden display origin. Elevation 0 m is the hover-survey datum. North is the Outpost-to-Lair convention, not a derived compass.",
+        "coordinates_raw": "Eden display origin. Elevation 0 m is the hover-survey datum. North is sun-referenced true north, about plus or minus 15 degrees.",
         "category": "outposts",
         "subtype": "public outpost",
-        "quantity_notes": "Estimate (unverified). Talon's public outpost and the Eden display origin. Elevation 0 m is the hover-survey datum: elevation is 58 m minus a hover reading of 58 m. North on this plane is the bearing from here to Dragon's Lair, which is not a derived compass.",
+        "quantity_notes": "Estimate (unverified). Talon's public outpost and the Eden display origin. The map pin is a red star. Elevation 0 m is the hover-survey datum: elevation is 58 m minus a hover reading of 58 m. North is sun-referenced, about plus or minus 15 degrees: sunrise to sunset is treated as east to west.",
         "nav_markers": null,
         "planet_sightings": null,
         "source": "logs/2026-11-16.md"
@@ -193,7 +193,7 @@
       "id": "eden-2026-11-16-talons-copper-site",
       "geometry": {
         "type": "Point",
-        "coordinates": [-526.9, -131.4]
+        "coordinates": [85, -536.3]
       },
       "properties": {
         "id": "eden-2026-11-16-talons-copper-site",
@@ -206,15 +206,15 @@
         "origin": false,
         "anchor": false,
         "anchor_id": "eden-2026-11-16-talons-public-outpost",
-        "bearing_deg": 256,
+        "bearing_deg": 171,
         "distance_m": 543,
-        "x": -526.9,
-        "y": -131.4,
+        "x": 85,
+        "y": -536.3,
         "z": null,
-        "coordinates_raw": "Estimate. Outpost ground panorama, HUD 543 m, bearing about 256 degrees, WSW. Bearing uncertainty about plus or minus 15 degrees. Elevation unknown. An earlier 3.5 km marker was a different place and is not this site.",
+        "coordinates_raw": "Estimate. Outpost ground panorama, HUD 543 m, true bearing about 171 degrees, south and slightly east. Bearing uncertainty about plus or minus 15 degrees. Elevation unknown. An earlier 3.5 km marker was a different place and is not this site.",
         "category": "ores",
         "subtype": "copper",
-        "quantity_notes": "Estimate (unverified). Talon's copper site, 543 m WSW of Talon's Public Outpost from the 16 Nov 2026 ground panorama. Looking south from the Lair, Copper is to the right of the Outpost. Bearing is about plus or minus 15 degrees. Elevation is unknown.",
+        "quantity_notes": "Estimate (unverified). Talon's copper site, 543 m from Talon's Public Outpost at true azimuth 171 degrees, south and slightly east. Bearing is about plus or minus 15 degrees. Elevation is unknown.",
         "nav_markers": null,
         "planet_sightings": null,
         "source": "logs/2026-11-16.md"
@@ -254,7 +254,7 @@
       "id": "eden-2026-11-16-talons-silica-site",
       "geometry": {
         "type": "Point",
-        "coordinates": [-117.2, 92]
+        "coordinates": [-101.8, -108.8]
       },
       "properties": {
         "id": "eden-2026-11-16-talons-silica-site",
@@ -267,15 +267,15 @@
         "origin": false,
         "anchor": false,
         "anchor_id": "eden-2026-11-16-talons-public-outpost",
-        "bearing_deg": 308.1,
+        "bearing_deg": 223.1,
         "distance_m": 149,
-        "x": -117.2,
-        "y": 92,
+        "x": -101.8,
+        "y": -108.8,
         "z": null,
-        "coordinates_raw": "Estimate. Outpost ground panorama, HUD 149 m, bearing about 308.1 degrees, northwest. Bearing uncertainty about plus or minus 15 degrees. Elevation unknown.",
+        "coordinates_raw": "Estimate. Outpost ground panorama, HUD 149 m, true bearing about 223.1 degrees, southwest. Bearing uncertainty about plus or minus 15 degrees. Elevation unknown.",
         "category": "ores",
         "subtype": "silica",
-        "quantity_notes": "Estimate (unverified). Talon's silica site, 149 m northwest of Talon's Public Outpost from the 16 Nov 2026 ground panorama. Bearing is about plus or minus 15 degrees. Elevation is unknown.",
+        "quantity_notes": "Estimate (unverified). Talon's silica site, 149 m from Talon's Public Outpost at true azimuth 223 degrees, southwest. Bearing is about plus or minus 15 degrees. Elevation is unknown.",
         "nav_markers": null,
         "planet_sightings": null,
         "source": "logs/2026-11-16.md"

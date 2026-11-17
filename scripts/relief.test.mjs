@@ -18,29 +18,29 @@ test("the relief plate is an Eden estimate and starts hidden", () => {
   assert.match(record.method, /58 m/);
   assert.match(record.method, /hover/i);
   assert.match(record.method, /0 m datum/);
-  assert.match(record.method, /panorama/);
-  assert.match(record.method, /Outpost to Dragon's Lair/);
+  assert.match(record.method, /sun-referenced/);
+  assert.match(record.method, /true north/);
   assert.match(record.method, /elevations are unknown/);
   assert.doesNotMatch(record.method, /northwest of the Lair/);
 });
 
 test("plate metres are Eden display metres from the Outpost", () => {
   assert.deepEqual(estimateToSite(0, 0), { x: 0, y: 0 });
-  assert.deepEqual(estimateToSite(0, 2800), { x: 0, y: 2800 });
-  assert.deepEqual(estimateToSite(-117.2, 92), { x: -117.2, y: 92 });
-  assert.deepEqual(estimateToSite(-526.9, -131.4), { x: -526.9, y: -131.4 });
+  assert.deepEqual(estimateToSite(-2789.3, 244), { x: -2789.3, y: 244 });
+  assert.deepEqual(estimateToSite(-101.8, -108.8), { x: -101.8, y: -108.8 });
+  assert.deepEqual(estimateToSite(85, -536.3), { x: 85, y: -536.3 });
   const perMeter = svgUnitsPerMeter(record.calibration);
-  assert.ok(Math.abs(perMeter - 0.063657475) < 1e-12);
+  assert.ok(Math.abs(perMeter - 0.094946829) < 1e-12);
 });
 
 test("the image corners cover the panorama places", () => {
   const bounds = imageBounds(record);
-  assert.ok(bounds.west < -526.9 && bounds.east > 0);
-  assert.ok(bounds.south < -131.4 && bounds.north > 2800);
-  assert.ok(Math.abs(bounds.west - -5284.123050749345) < 1e-9);
-  assert.ok(Math.abs(bounds.east - 7383.674407443904) < 1e-9);
-  assert.ok(Math.abs(bounds.south - -4179.480131752008) < 1e-9);
-  assert.ok(Math.abs(bounds.north - 7131.053313063393) < 1e-9);
+  assert.ok(bounds.west < -2789.3 && bounds.east > 85);
+  assert.ok(bounds.south < -536.3 && bounds.north > 244);
+  assert.ok(Math.abs(bounds.west - -6706.4562208812695) < 1e-6);
+  assert.ok(Math.abs(bounds.east - 4213.339741972847) < 1e-6);
+  assert.ok(Math.abs(bounds.south - -3795.8877910498736) < 1e-6);
+  assert.ok(Math.abs(bounds.north - 2877.3208529165313) < 1e-6);
 });
 
 test("Eden places use the Outpost origin and the corrected panorama", () => {
@@ -58,23 +58,28 @@ test("Eden places use the Outpost origin and the corrected panorama", () => {
   assert.match(outpost.properties.quantity_notes, /Estimate \(unverified\)/);
 
   assert.equal(lair.properties.origin, false);
-  assert.deepEqual(lair.geometry.coordinates, [0, 2800]);
+  assert.equal(lair.properties.category, "structures");
+  assert.deepEqual(lair.geometry.coordinates, [-2789.3, 244]);
   assert.equal(lair.properties.z, null);
+  assert.equal(lair.properties.bearing_deg, 275);
   assert.equal(lair.properties.anchor_id, outpost.properties.id);
   assert.equal(lair.properties.distance_m, 2800);
+  assert.equal(outpost.properties.category, "outposts");
 
-  assert.deepEqual(copper.geometry.coordinates, [-526.9, -131.4]);
+  assert.deepEqual(copper.geometry.coordinates, [85, -536.3]);
+  assert.equal(copper.properties.bearing_deg, 171);
   assert.equal(copper.properties.z, null);
   assert.equal(copper.properties.distance_m, 543);
   assert.equal(copper.properties.anchor_id, outpost.properties.id);
   assert.match(copper.properties.quantity_notes, /Estimate \(unverified\)/);
-  assert.match(copper.properties.quantity_notes, /WSW/);
+  assert.match(copper.properties.quantity_notes, /171/);
   assert.match(copper.properties.quantity_notes, /elevation is unknown/i);
   assert.doesNotMatch(copper.properties.quantity_notes, /\+14 m/);
   assert.doesNotMatch(copper.properties.quantity_notes, /3\.5 km/);
   assert.doesNotMatch(copper.properties.quantity_notes, /northwest of the Lair/);
 
-  assert.deepEqual(silica.geometry.coordinates, [-117.2, 92]);
+  assert.deepEqual(silica.geometry.coordinates, [-101.8, -108.8]);
+  assert.equal(silica.properties.bearing_deg, 223.1);
   assert.equal(silica.properties.z, null);
   assert.equal(silica.properties.distance_m, 149);
   assert.equal(silica.properties.anchor_id, outpost.properties.id);

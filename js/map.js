@@ -410,7 +410,7 @@ function drawMarkers(visible, northDerived, options = {}) {
     const marker = L.marker(L.latLng(position.y, position.x), {
       icon: L.divIcon({
         className: "map-pin",
-        html: iconSvg(category.shape, category.color, {
+        html: iconSvg(properties.origin ? "star" : category.shape, properties.origin ? "#c23b22" : category.color, {
           example: properties.example,
           approximate: properties.approximate,
           plate: mapView === "topo",

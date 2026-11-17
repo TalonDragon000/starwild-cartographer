@@ -125,8 +125,8 @@ test("logged Eden anchor and Maren examples place as documented", () => {
   assert.deepEqual(outpost, { x: 0, y: 0, method: "origin" });
   const base = displayPosition(byId.get("eden-2026-11-12-dragons-lair-base"), byId);
   assert.equal(base.method, "stored");
-  assert.equal(base.x, 0);
-  assert.equal(base.y, 2800);
+  assert.equal(base.x, -2789.3);
+  assert.equal(base.y, 244);
 
   const spawn = byId.get("eden-2026-11-12-v3ktr-first-spawn");
   assert.equal(spawn.properties.approximate, true);

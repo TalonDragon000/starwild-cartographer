@@ -4,14 +4,14 @@
   "label": "Estimate (unverified)",
   "defaultVisible": false,
   "image": "data/eden-lair-relief-estimate.png",
-  "method": "Hover-survey heights: elevation is 58 m minus the hover reading, and Talon's Public Outpost is the 0 m datum. The Lair is 2.8 km due north from an Outpost ground panorama. Silica and Copper are placed from that same panorama. Their bearings are about plus or minus 15 degrees, and their elevations are unknown. North is the bearing from the Outpost to Dragon's Lair, because the game has no compass. This plate is an estimate and is not a survey.",
+  "method": "Hover-survey heights: elevation is 58 m minus the hover reading, and Talon's Public Outpost is the 0 m datum. The frame is sun-referenced true north, about plus or minus 15 degrees: sunrise to sunset is treated as east to west. Dragon's Lair is 2.8 km west and slightly north. Silica and Copper come from the Outpost panorama. Their elevations are unknown. This plate is an estimate and is not a survey.",
   "calibration": {
-    "svgWidth": 806.4,
-    "svgHeight": 720,
-    "eastZeroSvgX": 336.373931,
-    "northZeroSvgY": 453.944848,
-    "eastTickSvgX": 400.031406,
+    "svgWidth": 1036.8,
+    "svgHeight": 633.6,
+    "eastZeroSvgX": 636.756752,
+    "northZeroSvgY": 273.192491,
+    "eastTickSvgX": 731.703581,
     "metersPerTick": 1000,
-    "note": "eastZeroSvgX is the plate's 0 m east tick. eastTickSvgX is the 1000 m east tick. North uses the same metres-per-pixel scale. Display metres match the plate: Talon's Public Outpost is (0, 0) on both."
+    "note": "eastZeroSvgX is the plate's 0 m east tick. eastTickSvgX is the 1000 m east tick. North uses the same metres-per-pixel scale. Display metres match the plate: Talon's Public Outpost is (0, 0), x is true east, and y is true north."
   }
 }
