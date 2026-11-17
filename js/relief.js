@@ -20,7 +20,17 @@ export function svgUnitsPerMeter(calibration) {
   return span / calibration.metersPerTick;
 }
 
+function finiteBounds(box) {
+  if (!box) return null;
+  const { west, east, south, north } = box;
+  if (![west, east, south, north].every((value) => typeof value === "number" && Number.isFinite(value))) return null;
+  if (!(east > west) || !(north > south)) return null;
+  return { west, east, south, north };
+}
+
 export function imageBounds(record) {
+  const explicit = finiteBounds(record?.extent?.image);
+  if (explicit) return explicit;
   const calibration = record?.calibration;
   const perMeter = svgUnitsPerMeter(calibration);
   if (!calibration || !(perMeter > 0)) return null;

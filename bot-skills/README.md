@@ -48,6 +48,7 @@ The body is Markdown: headings, lists, bold, and code. The skills page escapes H
 | `description` | Same as frontmatter `description`. |
 | `category` | An id from `categories`. |
 | `tags` | Search words, lowercase, with no spaces inside a tag. |
+| `tutorial_id` | An id from `data/bot-tutorials.json`, or `null` when the skill has no tutorial. The skills page links to `tutorials.html#<id>`. |
 | `status` | `verified` or `draft`. Use `draft` while any step is still unchecked. Use `verified` when the steps have been seen in play. |
 | `date_added` | Day the skill was added, `YYYY-MM-DD`. |
 | `last_updated` | Day the skill last changed, `YYYY-MM-DD`. |

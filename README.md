@@ -26,20 +26,36 @@ Six worlds circle the star Varda. This log is where surveys of those worlds accu
 | `data/surface-palette.json` | Fill colors for topographic surfaces. This is the only place those colors are set. |
 | `data/hints.json` | Gameplay tips. One object per tip. The hints page reads this file. |
 | `data/bot-skills.json` | Bot skill index: categories and one object per skill. The skills page reads this file. |
-| `index.html`, `hints.html`, `skills.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. |
+| `data/bot-tutorials.json` | Bot tutorial index: categories and one object per tutorial. The tutorials page reads this file. |
+| `data/compass.json` | Compass rose calibration. `calibrated` stays false and `north_offset_deg` stays null until it is measured in game. |
+| `js/config.js` | Public Supabase URL and anon key for the live project. Clearing both strings turns community points off. |
+| `supabase/migrations/0001_points.sql` | `points` and `landmark_sightings` tables, with row-level security. Applied in Supabase, not by the static site. |
+| `supabase/migrations/0002_aerial_uploads.sql` | Private `aerial-uploads` bucket and `aerial_uploads` table. Apply it in Supabase. The webhook secrets stay out of the repo. |
+| `data/eden/poi-estimate.json` | Public POIs and the relief plate's metre bounds. |
+| `data/eden/coverage.geojson` | Revealed polygons for survey fog. Append a polygon for a new aerial footprint. |
+| `index.html`, `hints.html`, `skills.html`, `tutorials.html`, `css/`, `js/` | Static site. The map loads Leaflet from a CDN. `js/place.js` turns a bearing and a distance into a display position. Community sign-in loads `supabase-js` from a CDN only when `js/config.js` is filled in. |
 | `worlds/` | One Markdown file per known world, plus a template for a world that does not have a file yet. |
 | `logs/` | Travel journal. One Markdown file per day. |
 | `outpost/eden-outpost.md` | Supply crates at the owner's public outpost on Eden. |
 | `scripts/validate-locations.mjs` | Checks `data/locations.geojson` against the schema. |
 | `scripts/validate-hints.mjs` | Checks `data/hints.json` against the schema. |
 | `scripts/validate-bot-skills.mjs` | Checks `data/bot-skills.json` against the skill files. |
+| `scripts/validate-bot-tutorials.mjs` | Checks `data/bot-tutorials.json`. |
+| `scripts/validate-compass.mjs` | Checks `data/compass.json`. |
+| `scripts/validate-points-sql.mjs` | Checks the community-points migration for its tables, grants, and admin guard. |
+| `scripts/validate-coverage.mjs` | Checks the Eden survey-fog polygon and the relief bounds. |
+| `scripts/validate-aerial-sql.mjs` | Checks the aerial-upload migration, bucket, and admin guard. |
 | `scripts/validate-terrain.mjs` | Checks `data/terrain.geojson` and `data/surface-palette.json`. |
 | `scripts/validate-explored.mjs` | Checks `data/explored.geojson`. |
 | `scripts/place.test.mjs` | Checks the bearing-to-position math. |
 | `scripts/skills.test.mjs` | Checks skill search, the query string, and that skill Markdown is escaped. |
+| `scripts/tutorials.test.mjs` | Checks tutorial search, the query string, and the link from the lag skill. |
+| `scripts/contrib.test.mjs` | Checks community point plotting, the uncalibrated compass, and the re-anchor note. |
 | `scripts/terrain.test.mjs` | Checks the topographic grid, contours, and surface colors. |
 | `scripts/explored.test.mjs` | Checks the explored-ground buffer and the fog readout. |
 | `scripts/relief.test.mjs` | Checks the Eden relief plate georeference and the estimated places. |
+| `scripts/coverage.test.mjs` | Checks that survey fog reveals only the listed polygons. |
+| `scripts/aerial.test.mjs` | Checks the admin gate, the image limits, and the webhook header. |
 | `bot-skills/` | One folder per bot skill. Each folder holds `SKILL.md`. See `bot-skills/README.md`. |
 | `.github/workflows/pages.yml` | Publishes this repository to GitHub Pages. |
 
@@ -62,7 +78,9 @@ python3 -m http.server 8080
 
 Open <http://localhost:8080/>.
 
-The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, or skills. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. **Estimate (unverified)** draws an Eden relief plate for the Dragon's Lair area. It stays off until that box is checked. `?estimate=1` opens the page with the plate on. Helpful Hints and Bot Skills are linked from the site navigation. Bot Skills is `skills.html`.
+The pages load their data with `fetch`, so opening an HTML file directly will not show locations, hints, skills, or tutorials. The map starts on Eden. Example points stay hidden until **Show examples** is checked. Those examples are on Maren: a stored anchor, a point computed from a bearing, an approximate fix, and one example grass polygon in the topographic view. The grass polygon is drawn only where that ground is also explored. `?demo=1` reveals a hidden example track across it. That track is not a path that was walked. **Topography** in the map's corner draws an Eden relief plate for the Dragon's Lair area. It stays off until that switch is checked. `?estimate=1` opens the page with the plate on. **Survey fog**, also in that corner, covers ground outside `data/eden/coverage.geojson`. It starts on. `?fog=0` opens the page with the fog off. The scale bar stays on the map in both views. Map notes stay behind the **?** button. Helpful Hints, Bot Skills, and Bot Tutorials are linked from the site navigation. Bot Skills is `skills.html`. Bot Tutorials is `tutorials.html`.
+
+`js/config.js` ships with the public Supabase URL and anon key, so the community sign-in block is on. Magic links return to <https://talondragon000.github.io/starwild-cartographer/>. Clearing both strings in that file hides the block, and the page does not request Supabase.
 
 The map has two views. **Simple** is the default dark survey plot. **Topographic** is the flat field sheet described below. The choice is stored in this browser. A link can force it with `?view=simple` or `?view=topo`.
 
@@ -71,6 +89,8 @@ The map has two views. **Simple** is the default dark survey plot. **Topographic
 Starwild has no in-game coordinates and no compass. This log keeps one display plane per world.
 
 North will be derived from the motion of the sun or of Varda as seen on that world. It is not derived yet. `data/location-schema.json` records that on `world_compass.<World>.north_derived`. Set it to `true` only when the derivation has been written down, and put a one-line description in `north_note`.
+
+The compass rose is separate from that flag. `data/compass.json` holds `calibrated` and `north_offset_deg`. Both stay uncalibrated (`false` and `null`) until the offset is measured in game. The info panel says the compass is uncalibrated. The rose is not rotated, and it does not claim a direction. When an offset exists, set `calibrated` to `true` and `north_offset_deg` to degrees clockwise from display up. Do not invent either value.
 
 Bearings are degrees clockwise from that world's north. 0 is north, 90 is east, 180 is south, and 270 is west.
 
@@ -91,7 +111,9 @@ y = anchor_y + distance_m * cos(bearing_deg)
 
 Nav markers and visible planets stay on the place that saw them. A nav marker is not a separate point until it has its own feature. A distance without a bearing is not plotted.
 
-The Eden origin is `eden-2026-11-16-talons-public-outpost`, stored at x 0, y 0. Its map pin is a red star. Dragons Lair Base is 2.8 km west and slightly north of that origin, at true azimuth 275 degrees, and uses a normal marker. Eden north is a sun-referenced estimate: sunrise to sunset is treated as east to west, about plus or minus 15 degrees. `north_derived` is true, and the uncertainty is in `north_note`. To change the origin again, set `origin` to false on the current origin and true on the new place, and store that place at x 0, y 0. Only one non-example origin is allowed on a world.
+The Eden origin is `eden-2026-11-16-talons-public-outpost`, Talon's Public Outpost, stored at x 0, y 0. Its map pin is a red star. `data/location-schema.json` records that on `origin_anchor.Eden`. Dragons Lair Base is a base, not the origin. It is 2.8 km west and slightly north of the outpost, at true azimuth 275 degrees, and uses a normal marker. Eden north is a sun-referenced estimate: sunrise to sunset is treated as east to west, about plus or minus 15 degrees. `north_derived` is true, and the uncertainty is in `north_note`.
+
+`offset_from_previous_m` is the previous anchor's east and north in the new frame, `{ "x": east, "y": north }`, or `null` when that position has not been measured. Eden's offset is measured: `{ "x": -2789.3, "y": 244 }`. The Lair is stored at that position and `reanchor_pending` is false, so it is plotted. While an offset is still null, places logged from the previous origin stay `reanchor_pending`, with null `x` and `y` and no geometry. The info panel lists those places. They are not plotted, and the pending flag is not drawn on the map. To change the origin again, set `origin` to false on the current origin and true on the new place, store that place at x 0, y 0, and leave `offset_from_previous_m` null until the shift is measured. Only one non-example origin is allowed on a world.
 
 ## Map views
 
@@ -104,7 +126,7 @@ The Eden origin is `eden-2026-11-16-talons-public-outpost`, stored at x 0, y 0. 
 - Contour lines are seeded, not measured heights. They stay put between loads, and they are drawn only on surveyed polygons that sit inside explored ground. Every fifth line is a heavier index contour. A thin light edge keeps the brown line visible on dark ground. The sheet says: "Fog = unexplored."
 - The grid is dark gray. Spacing follows the zoom in the manner of 100 m squares with a heavier line every tenth square, so a 100 m grid has 1 km index lines. Numbers sit on the edges and are display meters.
 - A scale bar is labeled in display meters.
-- The north arrow reads **N (provisional)** until `north_derived` is true for that world.
+- The compass rose follows `data/compass.json`. While `calibrated` is false, the info panel says the compass is uncalibrated and the rose is not labeled as north.
 
 The browser remembers the view in `localStorage` under `starwild-cartographer.mapView`. `?view=simple` and `?view=topo` override that saved choice.
 
@@ -150,7 +172,7 @@ The page loads this file on open, again every 60 seconds, and when the tab gains
 
 Example features stay hidden. Open the topographic view with `?demo=1` to draw them. That query is for checking the sheet. It is not a record of travel. The example track is on Maren, its notes include `EXAMPLE`, and it stays off the simple view.
 
-The only real feature shipped here is Dragons Lair Base, at east −2789.3, north 244. That is 2.8 km west and slightly north of the Eden origin, Talon's Public Outpost.
+The only real feature shipped here is Dragons Lair Base, at east −2789.3, north 244. That is 2.8 km west and slightly north of the Eden origin, Talon's Public Outpost. `reanchor_pending` is false, so the sheet draws it.
 
 | Field | Meaning |
 | --- | --- |
@@ -160,7 +182,8 @@ The only real feature shipped here is Dragons Lair Base, at east −2789.3, nort
 | `radius_m` | Meters to clear around the geometry, or `null` to use `default_radius_m`. |
 | `date` | `YYYY-MM-DD`, or `null`. |
 | `source` | Log path, such as `logs/YYYY-MM-DD.md`, for a real track. `null` for an example. The log file has to exist. |
-| `notes` | What was walked, or `null`. |
+| `notes` | What was walked, or `null`. A feature with `reanchor_pending` true must say that it is not drawn. |
+| `reanchor_pending` | `true` when the coordinates are still in a previous origin frame. The sheet skips the feature. `false` for a track in the current display frame. |
 
 Geometry is `Point`, `MultiPoint`, `LineString`, `MultiLineString`, `Polygon`, or `MultiPolygon`. Coordinates are `[east, north]` in display meters. A polygon ring is closed. A hole in a polygon uses the opposite winding from the outer ring.
 
@@ -170,7 +193,7 @@ node scripts/validate-explored.mjs
 
 ## Eden relief estimate
 
-`data/eden-relief-estimate.json` describes one reference image, `data/eden-lair-relief-estimate.png`. The map draws it on Eden when **Estimate (unverified)** is checked. The checkbox starts off. It is not surveyed ground, so it is not a feature in `data/terrain.geojson`, and it does not clear fog.
+`data/eden-relief-estimate.json` describes one reference image, `data/eden-lair-relief-estimate.png`. The map draws it on Eden when **Topography** is checked. The switch starts off. The image is positioned with `extent.image` in `data/eden/poi-estimate.json`: those corners are metres from Talon's Public Outpost, so the plate's axes meet the coordinate grid. `extent.axes` is the data window inside the frame. The plate is not surveyed ground, so it is not a feature in `data/terrain.geojson`, and it does not by itself clear fog.
 
 The plate measures true east and true north from Talon's Public Outpost, and that outpost is the Eden display origin. Display metres match the plate. North is sun-referenced: sunrise to sunset is treated as east to west, about plus or minus 15 degrees. Dragon's Lair is 2.8 km west and slightly north, at azimuth 275 degrees. Talon's Silica Site is 149 m southwest, at azimuth 223 degrees. Talon's Copper Site is 543 m south and slightly east, at azimuth 171 degrees. Silica and Copper elevations are unknown. An earlier Copper placement, about 3.5 km from the Outpost with an estimated height of +14 m, was a different marker and is not on the map.
 
@@ -179,6 +202,14 @@ Heights that were hover-surveyed use elevation = 58 m minus the hover reading, a
 Talon's Public Outpost, Dragon's Lair, Talon's Silica Site, and Talon's Copper Site are plotted. Elara is in the file without a display position, because the bearing is unknown. The plate's interpolated Lair height is not written onto that feature.
 
 Do not add anyone else's base, name, or position to this layer or to the location file.
+
+## Survey fog
+
+`data/eden/coverage.geojson` is the revealed ground. Coordinates are the same metres as the map: `[east, north]` from Talon's Public Outpost. **Survey fog** paints the rest of the Eden view and leaves those polygons clear. The seeded polygon is the non-hatched part of the relief plate. Hatched ground on that plate was not in the ground views, so it stays under the fog.
+
+A later aerial shot is a new feature in that file. Terrain seen in the shot is a feature in `data/terrain.geojson`. A place seen in the shot is a feature in `data/locations.geojson`. The map reads those files on its own. No script change is required. The field list and a copy-paste feature are in [`data/README.md`](data/README.md).
+
+Do not publish another player's base. Record your own places and neutral NPCs only.
 
 ## How to add a location
 
@@ -192,9 +223,14 @@ Then run:
 node scripts/validate-locations.mjs
 node scripts/validate-hints.mjs
 node scripts/validate-bot-skills.mjs
+node scripts/validate-bot-tutorials.mjs
 node scripts/validate-terrain.mjs
 node scripts/validate-explored.mjs
-node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/relief.test.mjs
+node scripts/validate-compass.mjs
+node scripts/validate-points-sql.mjs
+node scripts/validate-coverage.mjs
+node scripts/validate-aerial-sql.mjs
+node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs scripts/coverage.test.mjs scripts/aerial.test.mjs
 ```
 
 The same checks run in GitHub Actions.
@@ -213,6 +249,7 @@ Each feature is a GeoJSON `Feature`. `id` on the feature and `properties.id` are
 | `world_unconfirmed` | `true` when the place is filed under that world but the planet was not confirmed. |
 | `region` | Region or landmark name, or `null`. |
 | `origin` | `true` for the one display origin on that world. Stored at x 0, y 0. An example cannot be an origin. Eden's origin is Talon's Public Outpost, drawn as a red star. |
+| `reanchor_pending` | `true` when this place was logged from a previous origin and the offset has not been applied. `x` and `y` stay null, and the place is not plotted. The info panel lists these places. `false` for a place in the current frame. Eden's measured places are `false`. |
 | `anchor` | `true` when other places may name this feature in `anchor_id`. An origin is an anchor. |
 | `anchor_id` | Id of the reference place on the same world, or `null` for an origin or a point that is not relative to anything. A real place cannot use an example as its anchor. |
 | `bearing_deg` | Degrees clockwise from derived north, from 0 up to but not including 360, or `null`. |
@@ -264,6 +301,7 @@ This is the shape of a new place that is not the origin. It is not itself a feat
     "world_unconfirmed": false,
     "region": "Landmark name",
     "origin": false,
+    "reanchor_pending": false,
     "anchor": false,
     "anchor_id": "eden-2026-11-16-talons-public-outpost",
     "bearing_deg": null,
@@ -314,7 +352,84 @@ The hints page has a search box and category checkboxes. It is `hints.html`.
 
 A skill is `verified` when the steps have been seen in play, and `draft` while a step is still unchecked. `starwild-climbing-and-bed-spawn` is `draft` because the bed spawn step is not verified yet.
 
-The skills page searches the name, description, tags, and body. Filters and sort are kept in the query string. `skills.html#<id>` opens that skill. The format and the steps for adding a skill are in `bot-skills/README.md`.
+The skills page searches the name, description, tags, and body. Filters and sort are kept in the query string. `skills.html#<id>` opens that skill. A skill may set `tutorial_id` to a tutorial id. The card then links to that tutorial. `null` means the skill has no tutorial. The format and the steps for adding a skill are in `bot-skills/README.md`.
+
+## Bot tutorials
+
+`data/bot-tutorials.json` is the index for `tutorials.html`. Categories are listed in that file. The page searches the name, source, and steps, and filters by category. `tutorials.html#<id>` opens that tutorial.
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Stable id. Lowercase words separated by hyphens. |
+| `name` | Short title. |
+| `category` | An id from `categories`. |
+| `source` | Where the steps were seen, such as `video by TalonDragon000`. |
+| `video` | An `https` URL, or `null` when the link is not available yet. Do not commit a video file. |
+| `steps` | The steps that were seen, as an array of strings. |
+
+`lower-graphics-to-reduce-lag` is the first tutorial. Its video link is still null. `starwild-lag-and-browser-handling` points at it.
+
+## Community points
+
+`js/config.js` holds the live project's public URL and anon-role key. Both are meant to ship in the client. The service role key stays out of this file. Clear `supabaseUrl` and `supabaseAnonKey` to hide the sign-in block and skip Supabase.
+
+The database is the Bolt-hosted project. `supabase/migrations/0001_points.sql` creates `public.points` and `public.landmark_sightings`, enables row-level security, and revokes the default grants before it grants back the ones the site uses.
+
+Magic-link sign-in uses `signInWithOtp` and the implicit flow, so the default magic-link email template works. `emailRedirectTo` is `https://talondragon000.github.io/starwild-cartographer/`. In Supabase Auth, the Site URL and the Redirect URLs list must include that address. A redirect that is missing from the list is rejected. A signed-in visitor is created on the first link unless you later set `shouldCreateUser` to false.
+
+Serve the site with `python3 -m http.server 8080` and open the map. The Community block asks for an email and sends a magic link. The link opens the GitHub Pages map. After the visitor returns, **Add point** waits for a map click, then a tag, a name, and an optional note. The point is saved for the world selected in the filter, stored as a lowercase planet id (`Eden` is `eden`). It shows on the map immediately.
+
+`points` columns: `id`, `created_at`, `created_by`, `tag`, `name`, `note`, `x`, `y`, `planet`, `status`, `verified_x`, `verified_y`, `verified_at`. `x` is east and `y` is north, in meters from that world's 0,0 anchor. `tag` is one of `poi`, `resource`, `base`, `crash_site`, `creature`, `plant`, `structure`, `landmark`, `other`. `planet` defaults to `eden`. `status` defaults to `unverified`.
+
+Anyone can read points. A signed-in user can insert a row only as themselves. A trigger forces `status` to `unverified` and clears the verified columns for that insert. The public map does not show a verified or unverified badge. A verified or adjusted point is drawn at `verified_x` and `verified_y`. If those are null, it is not drawn. A `not_found` point is hidden. An unverified point is drawn at its submitted `x` and `y`, slightly faded, with no name label on the marker.
+
+An owner may update the name, note, tag, and position of their own row. Changing `status` or the verified columns requires an admin, the service role, or the database owner (`postgres` in the SQL editor). Admin is `app_metadata.role` set to `admin`, not a value in `user_metadata`. After changing it, that person signs out and back in so the session picks up the claim:
+
+```sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
+where email = 'you@example.com';
+```
+
+To record a check, set the measured position. Do not copy the submitted coordinates unless they were actually checked, and do not fill in a guessed meter value. Replace the placeholders below. `adjusted` uses the same three fields when the checked position differs from the submission.
+
+```sql
+update public.points
+set status = 'verified',
+    verified_x = <measured east meters>,
+    verified_y = <measured north meters>,
+    verified_at = now()
+where id = '<point id>';
+```
+
+`not_found` clears the verified fields:
+
+```sql
+update public.points
+set status = 'not_found',
+    verified_x = null,
+    verified_y = null,
+    verified_at = null
+where id = '<point id>';
+```
+
+`landmark_sightings` is for a later triangulation. It stores the observer's `observer_x` and `observer_y`, the `landmark_point_id`, and optional `bearing_deg`, `distance_m`, `slope_note`, and `ground_type`. Anyone can read a sighting. A signed-in user can insert their own. Bearing and distance stay null until they are measured. The map does not draw sightings yet.
+
+There is no admin screen for point verification in this version. Verification is the SQL above, run as an admin session or with the service role.
+
+## Aerial uploads
+
+An admin (`app_metadata.role` is `admin`) sees **Upload aerial shot** after signing in. The form takes a PNG, JPG, or WebP up to 10 MB, a planet (Eden by default), a facing (compass or free text), an approximate altitude, the markers visible in the shot, and notes. The image goes to the private Storage bucket `aerial-uploads`, under that admin's user id. The row goes to `public.aerial_uploads` with status `pending`. The page then shows that status. When the row is `processed`, the page shows `processed_summary`.
+
+`supabase/migrations/0002_aerial_uploads.sql` creates the table, the row-level security, the private bucket, and an insert trigger. The trigger calls the edge function `aerial-upload-notify` with the service role key stored in Vault as `aerial_function_bearer`. The function signs the image for 8 days and POSTs JSON to the secret `GROKBOT_WEBHOOK_URL`. The request uses the standard webhook sender key:
+
+```http
+Authorization: Bearer <GROKBOT_WEBHOOK_KEY>
+```
+
+`Authorization` is the header name in `supabase/functions/aerial-upload-notify/index.ts` (`WEBHOOK_AUTH_HEADER`). Change that constant if the receiver expects a different header. The value stays `Bearer` plus the key. Neither secret is in the static site. The JSON body is `upload_id`, `planet`, `image_url`, `uploader`, `facing`, `altitude`, `markers`, `notes`, `created_at`.
+
+The Bolt project did not accept this migration from the agent that wrote it. Apply it by hand. See the pull request for the exact SQL editor and deploy steps. Set the admin role with the same `raw_app_meta_data` update as community points, then sign in again.
 
 ## GitHub Pages
 
@@ -337,10 +452,11 @@ If the push to `main` happened before that source was selected, open the **Actio
 5. For ground that was actually traveled, append a point or a line to `data/explored.geojson`. Leave `radius_m` null to use the file's default buffer. Do not invent a path.
 6. For each gameplay tip that was actually learned, append one object to `data/hints.json`.
 7. For a bot playbook that was actually learned, add a skill under `bot-skills/` as described in `bot-skills/README.md`.
-8. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
-9. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
-10. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/relief.test.mjs`.
-11. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
+8. For a setting or control sequence that was actually seen, append one tutorial to `data/bot-tutorials.json`. Leave `video` null until there is a link.
+9. When the day changes what is known about a world, write that under the matching heading in `worlds/`. Do not put a guess in a section to make it look finished.
+10. When outpost crates change, update the status table in `outpost/eden-outpost.md`.
+11. Run `node scripts/validate-locations.mjs`, `node scripts/validate-hints.mjs`, `node scripts/validate-bot-skills.mjs`, `node scripts/validate-bot-tutorials.mjs`, `node scripts/validate-terrain.mjs`, `node scripts/validate-explored.mjs`, `node scripts/validate-compass.mjs`, `node scripts/validate-points-sql.mjs`, `node scripts/validate-coverage.mjs`, `node scripts/validate-aerial-sql.mjs`, and `node --test scripts/place.test.mjs scripts/skills.test.mjs scripts/terrain.test.mjs scripts/explored.test.mjs scripts/contrib.test.mjs scripts/tutorials.test.mjs scripts/relief.test.mjs scripts/coverage.test.mjs scripts/aerial.test.mjs`.
+12. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message, for example `docs: log 2026-11-12 eden survey`.
 
 The bot appends. The owner can edit any file the bot touched.
 

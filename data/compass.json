@@ -1,0 +1,5 @@
+{
+  "calibrated": false,
+  "north_offset_deg": null,
+  "note": "Not measured in game. Leave calibrated false and north_offset_deg null until the offset is measured. Do not rotate the rose or assign a direction before that."
+}

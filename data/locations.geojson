@@ -6,7 +6,10 @@
       "id": "eden-2026-11-12-dragons-lair-base",
       "geometry": {
         "type": "Point",
-        "coordinates": [-2789.3, 244]
+        "coordinates": [
+          -2789.3,
+          244
+        ]
       },
       "properties": {
         "id": "eden-2026-11-12-dragons-lair-base",
@@ -17,6 +20,7 @@
         "world_unconfirmed": false,
         "region": "Dragons Lair Base",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": true,
         "anchor_id": "eden-2026-11-16-talons-public-outpost",
         "bearing_deg": 275,
@@ -46,6 +50,7 @@
         "world_unconfirmed": false,
         "region": "V3KTR first spawn",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": true,
         "anchor_id": "eden-2026-11-12-dragons-lair-base",
         "bearing_deg": null,
@@ -82,6 +87,7 @@
         "world_unconfirmed": false,
         "region": "Pine and birch woodland",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": null,
         "bearing_deg": null,
@@ -111,6 +117,7 @@
         "world_unconfirmed": false,
         "region": "Ore-looking rocks",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": null,
         "bearing_deg": null,
@@ -140,6 +147,7 @@
         "world_unconfirmed": false,
         "region": "Stacked rock outcrop",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": null,
         "bearing_deg": null,
@@ -161,7 +169,11 @@
       "id": "eden-2026-11-16-talons-public-outpost",
       "geometry": {
         "type": "Point",
-        "coordinates": [0, 0, 0]
+        "coordinates": [
+          0,
+          0,
+          0
+        ]
       },
       "properties": {
         "id": "eden-2026-11-16-talons-public-outpost",
@@ -172,6 +184,7 @@
         "world_unconfirmed": false,
         "region": "Talon's Public Outpost",
         "origin": true,
+        "reanchor_pending": false,
         "anchor": true,
         "anchor_id": null,
         "bearing_deg": null,
@@ -193,7 +206,10 @@
       "id": "eden-2026-11-16-talons-copper-site",
       "geometry": {
         "type": "Point",
-        "coordinates": [85, -536.3]
+        "coordinates": [
+          85,
+          -536.3
+        ]
       },
       "properties": {
         "id": "eden-2026-11-16-talons-copper-site",
@@ -204,6 +220,7 @@
         "world_unconfirmed": false,
         "region": "Talon's Copper Site",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": "eden-2026-11-16-talons-public-outpost",
         "bearing_deg": 171,
@@ -233,6 +250,7 @@
         "world_unconfirmed": false,
         "region": "Elara",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": "eden-2026-11-12-dragons-lair-base",
         "bearing_deg": null,
@@ -254,7 +272,10 @@
       "id": "eden-2026-11-16-talons-silica-site",
       "geometry": {
         "type": "Point",
-        "coordinates": [-101.8, -108.8]
+        "coordinates": [
+          -101.8,
+          -108.8
+        ]
       },
       "properties": {
         "id": "eden-2026-11-16-talons-silica-site",
@@ -265,6 +286,7 @@
         "world_unconfirmed": false,
         "region": "Talon's Silica Site",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": "eden-2026-11-16-talons-public-outpost",
         "bearing_deg": 223.1,
@@ -294,6 +316,7 @@
         "world_unconfirmed": false,
         "region": "Starfall",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": null,
         "bearing_deg": null,
@@ -315,7 +338,10 @@
       "id": "example-maren-camp",
       "geometry": {
         "type": "Point",
-        "coordinates": [100, 50]
+        "coordinates": [
+          100,
+          50
+        ]
       },
       "properties": {
         "id": "example-maren-camp",
@@ -326,6 +352,7 @@
         "world_unconfirmed": false,
         "region": "Example Camp",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": true,
         "anchor_id": null,
         "bearing_deg": null,
@@ -362,6 +389,7 @@
         "world_unconfirmed": false,
         "region": "Example Vein",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": "example-maren-camp",
         "bearing_deg": 45,
@@ -391,6 +419,7 @@
         "world_unconfirmed": false,
         "region": "Example Bush",
         "origin": false,
+        "reanchor_pending": false,
         "anchor": false,
         "anchor_id": "example-maren-camp",
         "bearing_deg": 200,

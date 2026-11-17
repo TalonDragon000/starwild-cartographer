@@ -19,6 +19,7 @@ const propertyKeys = [
   "world_unconfirmed",
   "region",
   "origin",
+  "reanchor_pending",
   "anchor",
   "anchor_id",
   "bearing_deg",
@@ -95,6 +96,52 @@ if (schema.world_compass === null || typeof schema.world_compass !== "object") {
   }
 }
 
+const anchorKeys = ["name", "feature_id", "previous_feature_id", "offset_from_previous_m"];
+if (schema.origin_anchor === null || typeof schema.origin_anchor !== "object" || Array.isArray(schema.origin_anchor)) {
+  fail("data/location-schema.json.origin_anchor", "must be an object");
+} else {
+  for (const [world, anchor] of Object.entries(schema.origin_anchor)) {
+    const path = `origin_anchor.${world}`;
+    if (!worlds.has(world)) fail(path, "unknown world");
+    if (anchor === null || typeof anchor !== "object" || Array.isArray(anchor)) {
+      fail(path, "must be an object");
+      continue;
+    }
+    for (const key of anchorKeys) {
+      if (!Object.hasOwn(anchor, key)) fail(path, `missing ${key}`);
+    }
+    for (const key of Object.keys(anchor)) {
+      if (!anchorKeys.includes(key)) fail(path, `unknown property ${key}`);
+    }
+    if (typeof anchor.name !== "string" || anchor.name.trim() === "") {
+      fail(`${path}.name`, "must be a non-empty string");
+    }
+    if (typeof anchor.feature_id !== "string" || anchor.feature_id.trim() === "") {
+      fail(`${path}.feature_id`, "must be a non-empty string");
+    }
+    if (
+      anchor.previous_feature_id !== null &&
+      (typeof anchor.previous_feature_id !== "string" || anchor.previous_feature_id.trim() === "")
+    ) {
+      fail(`${path}.previous_feature_id`, "must be null or an id");
+    }
+    const offset = anchor.offset_from_previous_m;
+    if (offset !== null) {
+      if (offset === undefined || typeof offset !== "object" || Array.isArray(offset)) {
+        fail(`${path}.offset_from_previous_m`, "must be null or { x, y } in meters");
+      } else {
+        const keys = Object.keys(offset);
+        if (keys.length !== 2 || !keys.includes("x") || !keys.includes("y")) {
+          fail(`${path}.offset_from_previous_m`, "must contain only x and y");
+        }
+        if (!isFiniteNumber(offset.x) || !isFiniteNumber(offset.y)) {
+          fail(`${path}.offset_from_previous_m`, "x and y must be finite meters");
+        }
+      }
+    }
+  }
+}
+
 const categoryIds = new Set();
 for (const [index, category] of (schema.categories ?? []).entries()) {
   const path = `categories[${index}]`;
@@ -160,6 +207,17 @@ for (const [index, feature] of features.entries()) {
   if (!isBoolean(properties.example)) fail(`${path}.properties.example`, "must be true or false");
   if (!isBoolean(properties.approximate)) fail(`${path}.properties.approximate`, "must be true or false");
   if (!isBoolean(properties.origin)) fail(`${path}.properties.origin`, "must be true or false");
+  if (!isBoolean(properties.reanchor_pending)) {
+    fail(`${path}.properties.reanchor_pending`, "must be true or false");
+  }
+  if (properties.reanchor_pending === true) {
+    if (properties.origin === true) {
+      fail(`${path}.properties.origin`, "a place waiting on a re-anchor cannot be the origin");
+    }
+    if (properties.x !== null || properties.y !== null) {
+      fail(path, "clear x and y until the offset from the previous anchor is measured");
+    }
+  }
   if (!isBoolean(properties.anchor)) fail(`${path}.properties.anchor`, "must be true or false");
   if (!isBoolean(properties.world_unconfirmed)) {
     fail(`${path}.properties.world_unconfirmed`, "must be true or false");
@@ -307,6 +365,20 @@ for (const feature of features) {
     origins.set(properties.world, properties.id);
   }
 
+  if (properties.reanchor_pending !== true && typeof properties.anchor_id === "string") {
+    const seen = new Set([properties.id]);
+    let cursor = byId.get(properties.anchor_id);
+    while (cursor) {
+      if (cursor.properties?.reanchor_pending === true) {
+        fail(path, "a place logged from a reanchor_pending anchor must itself be reanchor_pending");
+        break;
+      }
+      if (typeof cursor.properties?.anchor_id !== "string" || seen.has(cursor.properties.id)) break;
+      seen.add(cursor.properties.id);
+      cursor = byId.get(cursor.properties.anchor_id);
+    }
+  }
+
   if (properties.anchor_id === null || properties.anchor_id === undefined) continue;
   const anchor = byId.get(properties.anchor_id);
   if (!anchor) {
@@ -348,6 +420,50 @@ for (const feature of features) {
         fail(path, "stored x/y disagree with bearing and distance by more than 0.05 m");
       }
     }
+  }
+}
+
+for (const [world, id] of origins) {
+  const anchor = schema.origin_anchor?.[world];
+  if (!anchor) {
+    fail(id, `${world} has an origin feature and no origin_anchor entry`);
+    continue;
+  }
+  if (anchor.feature_id !== id) {
+    fail(id, `origin_anchor.${world}.feature_id must match this origin`);
+  }
+}
+
+for (const [world, anchor] of Object.entries(schema.origin_anchor ?? {})) {
+  if (!origins.has(world)) fail(`origin_anchor.${world}`, "this world has no origin feature");
+  if (typeof anchor?.previous_feature_id !== "string") continue;
+  const previous = byId.get(anchor.previous_feature_id);
+  if (!previous) {
+    fail(`origin_anchor.${world}.previous_feature_id`, "does not exist");
+    continue;
+  }
+  if (previous.properties?.world !== world) {
+    fail(`origin_anchor.${world}.previous_feature_id`, "must be on the same world");
+  }
+  const offset = anchor?.offset_from_previous_m ?? null;
+  const pending = previous.properties?.reanchor_pending === true;
+  if (offset === null) {
+    if (!pending) {
+      fail(
+        `origin_anchor.${world}.previous_feature_id`,
+        "the previous anchor must be reanchor_pending until its offset is measured",
+      );
+    }
+  } else if (pending) {
+    fail(
+      `origin_anchor.${world}.previous_feature_id`,
+      "the offset is measured, so the previous anchor must not be reanchor_pending",
+    );
+  } else if (previous.properties?.x !== offset.x || previous.properties?.y !== offset.y) {
+    fail(
+      `origin_anchor.${world}.previous_feature_id`,
+      "the previous anchor's stored x and y must match offset_from_previous_m",
+    );
   }
 }
 

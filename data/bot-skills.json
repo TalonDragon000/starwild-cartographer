@@ -20,6 +20,7 @@
       "description": "Use when a Starwild bot needs to message another player, join or invite someone to a crew, or confirm a crew exists. Covers Nearby vs Crew chat and both invite directions.",
       "category": "social-crew",
       "tags": ["crew", "chat", "nearby", "invite"],
+      "tutorial_id": null,
       "status": "verified",
       "date_added": "2026-11-12",
       "last_updated": "2026-11-12",
@@ -31,6 +32,7 @@
       "description": "Use when a Starwild bot needs to climb a ladder or reach an upper floor, or set a bed as its spawn point.",
       "category": "movement-building",
       "tags": ["ladder", "climbing", "bed", "spawn"],
+      "tutorial_id": null,
       "status": "draft",
       "date_added": "2026-11-12",
       "last_updated": "2026-11-12",
@@ -42,9 +44,10 @@
       "description": "Use when a bot plays Starwild in a browser and the game lags, freezes, misses clicks, or loses invites or messages.",
       "category": "performance-troubleshooting",
       "tags": ["lag", "browser", "refresh", "popup"],
+      "tutorial_id": "lower-graphics-to-reduce-lag",
       "status": "verified",
       "date_added": "2026-11-12",
-      "last_updated": "2026-11-12",
+      "last_updated": "2026-11-15",
       "source_path": "bot-skills/starwild-lag-and-browser-handling/SKILL.md"
     }
   ]

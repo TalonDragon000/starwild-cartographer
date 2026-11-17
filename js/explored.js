@@ -38,6 +38,7 @@ export function exploredFeatures(collection, world, showDemo) {
     const properties = feature?.properties;
     if (!properties || feature.type !== "Feature" || feature.geometry == null) continue;
     if (properties.world !== world) continue;
+    if (properties.reanchor_pending === true) continue;
     if (properties.example === true && showDemo !== true) continue;
     entries.push({ feature, radius: featureRadius(feature, fallback) });
   }

@@ -140,6 +140,13 @@ label.chip:has(input:focus-visible) {
   outline-offset: 2px;
 }
 
+.skill-card summary a {
+  color: var(--gold);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .skill-kicker {
   display: flex;
   flex-wrap: wrap;

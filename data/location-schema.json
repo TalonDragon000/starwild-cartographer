@@ -8,6 +8,14 @@
     "Talus": { "north_derived": false, "north_note": null },
     "Thorne": { "north_derived": false, "north_note": null }
   },
+  "origin_anchor": {
+    "Eden": {
+      "name": "Talon's Public Outpost",
+      "feature_id": "eden-2026-11-16-talons-public-outpost",
+      "previous_feature_id": "eden-2026-11-12-dragons-lair-base",
+      "offset_from_previous_m": { "x": -2789.3, "y": 244 }
+    }
+  },
   "categories": [
     {
       "id": "ores",
@@ -65,6 +73,6 @@
     "bearing": "degrees clockwise from derived north",
     "z_plotted": false,
     "formula": "x = anchor_x + distance_m * sin(bearing_deg); y = anchor_y + distance_m * cos(bearing_deg)",
-    "note": "Starwild has no in-game coordinates or compass. Each world has its own display plane in meters. North is derived per world from the motion of the sun or the star. Until that derivation is recorded, north_derived is false and real bearings stay null. The origin anchor is (0, 0). Other points use a bearing and a distance from an anchor. x and y are optional explicit meters; when they are null, the map computes the display position. z is not plotted."
+    "note": "Starwild has no in-game coordinates or compass. Each world has its own display plane in meters. North is derived per world from the motion of the sun or the star. Until that derivation is recorded, north_derived is false and real bearings stay null. Eden north is a sun-referenced estimate, about plus or minus 15 degrees: sunrise to sunset is treated as east to west. The compass rose calibration lives in data/compass.json and stays uncalibrated until an in-game north offset is measured. The origin anchor is (0, 0). Eden's origin is Talon's Public Outpost. offset_from_previous_m is the previous anchor's east and north in the new frame, or null when that position has not been measured. When it is null, places logged from the previous origin stay reanchor_pending, with no stored position. When it is set, those places use the new frame and reanchor_pending is false. Other points use a bearing and a distance from an anchor. x and y are optional explicit meters; when they are null, the map computes the display position. z is not plotted."
   }
 }

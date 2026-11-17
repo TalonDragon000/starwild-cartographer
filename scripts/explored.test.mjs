@@ -97,8 +97,11 @@ test("example tracks stay hidden until demo is on", () => {
   assert.equal(shown[0].radius, 28);
 });
 
-test("Dragons Lair Base is revealed on Eden and the default radius applies", () => {
+test("Dragons Lair Base is drawn at the sun-referenced outpost offset", () => {
   assert.equal(collectionRadius(explored), 40);
+  const stored = explored.features.find((feature) => feature.id === "eden-2026-11-12-dragons-lair-base");
+  assert.equal(stored.properties.reanchor_pending, false);
+  assert.deepEqual(stored.geometry.coordinates, [-2789.3, 244]);
   const entries = exploredFeatures(explored, "Eden", false);
   assert.equal(entries.length, 1);
   assert.equal(entries[0].feature.id, "eden-2026-11-12-dragons-lair-base");

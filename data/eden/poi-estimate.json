@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "title": "Eden — Dragon's Lair area, estimated relief",
+    "created": "2026-11-16",
+    "timezone": "Pacific/Honolulu (HST, UTC-10)",
+    "banner": "ESTIMATE — sun-referenced compass (sunrise→sunset = E→W, ±15°) + Outpost panorama, unverified",
+    "frame": {
+      "origin": "Talon's Public Outpost",
+      "origin_xy_m": [
+        0,
+        0
+      ],
+      "x": "true east, meters",
+      "y": "true north, meters",
+      "compass": "sun-referenced",
+      "true_north_in_old_outpost_lair_frame_deg": 85,
+      "sunrise_true_az_deg": 110,
+      "sunset_true_az_deg": 250,
+      "bearing_uncertainty_deg": 15,
+      "archived_outpost_lair_north_map": "eden-lair-relief-estimate-outpost-lair-north.png",
+      "orientation_assumption": "No in-game compass. Sun-referenced convention (user decision, 16 Nov 2026): treat sunrise→sunset as true east→west, taking the bisector of the Outpost readings sunrise ≈ 195 deg and sunset ≈ 335 deg in the old Outpost→Lair=0 (clockwise) frame. True east ≈ 175 deg old, true west ≈ 355 deg old, so true north ≈ 85 deg old. true bearing = (old bearing - 85) mod 360. The Lair is at true azimuth 275 deg (W, slightly N) at 2.8 km. Silica and Copper panorama bearings were converted the same way and have about +/- 15 deg uncertainty (FOV- and sun-azimuth-dependent). The earlier Outpost→Lair = north map is archived with the -outpost-lair-north suffix."
+    },
+    "elevations": "Ground elevation estimated as 58 m minus hover height after the user confirmed no Space/Shift during the flight (turning may have shifted altitude slightly). Outpost = 0 m datum. Lair was not a hover-survey station; its elevation is interpolated. The old +14 m for Talon's Copper Site is not used: that 44 m hover belonged to a marker at 3.5 km from the Outpost, which cannot be this 543 m site.",
+    "contours": "5 m interval, thin-plate RBF (smoothing=4) only inside a 500 m-buffered convex hull of hover-height samples. Other players' bases were used as unpublished elevation and trilateration anchors and are not included in this file.",
+    "do_not_publish_other_players_bases": true
+  },
+  "pois": [
+    {
+      "name": "Talon's Public Outpost",
+      "x_m": 0,
+      "y_m": 0,
+      "est_elev_m": 0,
+      "confidence": "high",
+      "notes": "Eden origin for this sketch and the 0 m elevation datum (hover 58 m -> 0). Frequent Nav/HUD anchor."
+    },
+    {
+      "name": "Dragon's Lair",
+      "x_m": -2789.3,
+      "y_m": 244,
+      "est_elev_m": 20.1,
+      "confidence": "high",
+      "azimuth_deg": 275,
+      "distance_from_outpost_m": 2800,
+      "bearing_uncertainty_deg": 15,
+      "notes": "Placed at the 2.8 km ground/HUD reading from the 16 Nov 2026 Outpost panorama, at true azimuth 275 deg (W, slightly N) under the sun-referenced compass (true bearing = old Outpost→Lair bearing - 85 deg). Matches frequent 2.7-2.8 km near-Lair HUD. The earlier 2936 m compromise was dropped. Elevation is interpolated, not a hover station. Bearing uncertainty about +/- 15 deg."
+    },
+    {
+      "name": "Talon's Copper Site",
+      "x_m": 85,
+      "y_m": -536.3,
+      "est_elev_m": null,
+      "azimuth_deg": 171,
+      "distance_from_outpost_m": 543,
+      "bearing_uncertainty_deg": 15,
+      "confidence": "medium",
+      "notes": "Placed from the 16 Nov 2026 Outpost ground panorama: HUD 543 m, true bearing 171.0 deg (S, slightly E). Converted from 256.0 deg in the old Outpost→Lair=0 frame (shot 4 Copper vs Silica, plus shot 3 Silica vs Lair, 90 deg HFOV). Bearing uncertainty about +/- 15 deg (FOV- and sun-azimuth-dependent). The old 3.5 km Outpost-Copper, 3.2 km Lair-Copper, and +14 m (44 m hover) values were dropped as a misidentified / different copper marker. Elevation is unknown."
+    },
+    {
+      "name": "Elara",
+      "x_m": null,
+      "y_m": null,
+      "est_elev_m": null,
+      "distance_from_lair_m": 460,
+      "confidence": "low",
+      "notes": "Nav distance ~460 m from the Lair area (SW Oracle). Bearing unknown, so not uniquely placeable. Shown on the map as a dashed circle only."
+    },
+    {
+      "name": "Talon's Silica Site",
+      "x_m": -101.8,
+      "y_m": -108.8,
+      "est_elev_m": null,
+      "azimuth_deg": 223.1,
+      "distance_from_outpost_m": 149,
+      "bearing_uncertainty_deg": 15,
+      "confidence": "medium",
+      "notes": "Placed from the 16 Nov 2026 Outpost ground panorama: HUD 149 m, true bearing 223.1 deg (SW). Converted from 308.1 deg in the old Outpost→Lair=0 frame (shot 3, same frame as the Lair, 90 deg HFOV). Bearing uncertainty about +/- 15 deg (FOV- and sun-azimuth-dependent). Implied distance to the Lair is ~2.71 km, which matches the earlier 2.7-2.9 km Nav from the Lair. Elevation is unknown (no hover over this site)."
+    }
+  ],
+  "extent": {
+    "image": {
+      "west": -6706.4562208812695,
+      "east": 4213.339741972847,
+      "south": -3795.8877910498736,
+      "north": 2877.3208529165313,
+      "note": "Corners of the full relief image, including the title, legend, and caption, in metres from Talon's Public Outpost. The map overlay uses these corners so the plate's axes line up with the coordinate grid. x is true east and y is true north."
+    },
+    "axes": {
+      "west": -5999.999968403369,
+      "east": 1709.9999937859957,
+      "south": -2199.999991574232,
+      "north": 2209.999988519891,
+      "note": "Data window inside the axes frame. Hatched ground in this window was not in the ground views."
+    }
+  }
+}
